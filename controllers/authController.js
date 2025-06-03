@@ -44,3 +44,9 @@ exports.registerAdmin = async (req, res) => {
   await user.save();
   res.json({ success: true, user });
 };
+// In authController.js
+exports.logout = (req, res) => {
+  req.session.destroy();
+  res.clearCookie('connect.sid');
+  res.json({ success: true });
+};
