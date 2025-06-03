@@ -11,10 +11,12 @@ const {
 } = require('../controllers/adminController');
 
 router.get('/users', requireAdmin, listUsers);
+router.post('/users', requireAdmin, require('../controllers/adminController').addUser);
 router.delete('/users/:id', requireAdmin, deleteUser);
 router.put('/users/:id', requireAdmin, updateUser);
 router.post('/approve/:id', requireAdmin, approveUser);
 router.post('/deny/:id', requireAdmin, denyUser);
 router.get('/export/csv', requireAdmin, exportCSV);
+
 
 module.exports = router;
