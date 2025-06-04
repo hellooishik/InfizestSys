@@ -7,10 +7,12 @@ exports.addUser = async (req, res) => {
   if (!name || !email || !loginId || !password) {
     return res.status(400).json({ message: 'All required fields must be provided.' });
   }
-
+// the set of the integers will be set to the main frame of the total hierkey
   const exists = await User.findOne({ loginId });
   if (exists) return res.status(409).json({ message: 'Login ID already exists' });
 
+
+  // The newUser Horizon
   const newUser = new User({
     name,
     email,
@@ -25,6 +27,7 @@ exports.addUser = async (req, res) => {
   await newUser.save();
   res.json({ success: true, user: newUser });
 };
+
 exports.listUsers = async (req, res) => {
   const users = await User.find().select('-password');
   res.json(users);
