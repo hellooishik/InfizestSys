@@ -1,28 +1,31 @@
-import React, { useEffect, useState, useContext } from 'react';
+import React, { useEffect, useState, useContext, useRef } from 'react';
 import axios from 'axios';
 import { UserContext } from '../context/UserContext';
 import { useNavigate } from 'react-router-dom';
-import "./Dashboard.css"
+import "./Dashboard.css";
 
 function Dashboard() {
   const { user, setUser } = useContext(UserContext);
   const navigate = useNavigate();
+
   const [status, setStatus] = useState('');
   const [breakTime, setBreakTime] = useState(0);
   const [workedTime, setWorkedTime] = useState(0);
   const [approved, setApproved] = useState(false);
-  const [timer, setTimer] = useState(null);
   const [tasks, setTasks] = useState([]);
-  const [inactivityTimer, setInactivityTimer] = useState(null);
+  const [timer, setTimer] = useState(null);
+
+  const currentStatus = useRef('');
 
   const fetchSession = async () => {
-    try { 
+    try {
       const res = await axios.get('/api/log/session', { withCredentials: true });
       const data = res.data.data;
       setStatus(data.status);
       setBreakTime(data.break_time);
       setWorkedTime(data.worked_seconds);
       setApproved(data.approveness === 'Approved');
+      currentStatus.current = data.status;
     } catch (err) {
       console.error('Failed to fetch session', err);
     }
@@ -87,28 +90,24 @@ function Dashboard() {
     return 'Good evening';
   };
 
+  // Inactivity tracking (auto-pause after 30 sec)
   const startInactivityMonitor = () => {
     let timeout;
     const resetTimer = () => {
       clearTimeout(timeout);
       timeout = setTimeout(() => {
-        if (status === 'running') {
-          handleAction('auto-paused');
+        if (currentStatus.current === 'running') {
+          handleAction('auto-pause');
         }
-      }, 30000); // 30 sec
-      setInactivityTimer(timeout);
+      }, 30000);
     };
 
     const activityEvents = ['mousemove', 'keydown', 'mousedown', 'touchstart'];
-    activityEvents.forEach(event =>
-      window.addEventListener(event, resetTimer)
-    );
+    activityEvents.forEach(event => window.addEventListener(event, resetTimer));
     resetTimer();
 
     return () => {
-      activityEvents.forEach(event =>
-        window.removeEventListener(event, resetTimer)
-      );
+      activityEvents.forEach(event => window.removeEventListener(event, resetTimer));
       clearTimeout(timeout);
     };
   };
@@ -137,7 +136,7 @@ function Dashboard() {
     }
   }, [status]);
 
-  const isBlocked = status === 'auto-paused' && !approved;
+  const isBlocked = status === 'auto-pause' && !approved;
   const breakExceeded = breakTime >= 60;
 
   return (
@@ -159,33 +158,10 @@ function Dashboard() {
       </div>
 
       <div className="mb-4">
-        <button
-          className="btn btn-success me-2"
-          onClick={() => handleAction('start')}
-          disabled={isBlocked}
-        >
-          Start
-        </button>
-        <button
-          className="btn btn-warning me-2"
-          onClick={() => handleAction('pause', { break: 5 })}
-          disabled={breakExceeded || isBlocked}
-        >
-          Take a Break
-        </button>
-        <button
-          className="btn btn-danger me-2"
-          onClick={() => handleAction('end')}
-          disabled={isBlocked}
-        >
-          End Day
-        </button>
-        <button
-          className="btn btn-info"
-          onClick={requestApproval}
-        >
-          Ask for Approval
-        </button>
+        <button className="btn btn-success me-2" onClick={() => handleAction('start')} disabled={isBlocked}>Start</button>
+        <button className="btn btn-warning me-2" onClick={() => handleAction('pause', { break: 5 })} disabled={breakExceeded || isBlocked}>Take a Break</button>
+        <button className="btn btn-danger me-2" onClick={() => handleAction('end')} disabled={isBlocked}>End Day</button>
+        <button className="btn btn-info" onClick={requestApproval}>Ask for Approval</button>
       </div>
 
       {isBlocked && <p className="text-danger">⏳ Timer paused due to inactivity. Waiting for admin approval.</p>}

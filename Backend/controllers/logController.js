@@ -1,5 +1,5 @@
 const Log = require('../models/Log');
-const User = require('../models/User'); // ✅ Required for askForApproval
+const User = require('../models/User');
 const moment = require('moment');
 
 // 1. START, PAUSE, AUTO-PAUSE, END
@@ -19,7 +19,7 @@ exports.logTimeEvent = async (req, res) => {
         status: 'running',
         breakTime: 0,
         breakCount: 0,
-        approveness: 'None'
+        approveness: 'Pending'  // Valid enum value
       });
     } else {
       log.status = 'running';
@@ -29,19 +29,22 @@ exports.logTimeEvent = async (req, res) => {
   }
 
   if (['pause', 'end', 'auto-pause'].includes(status) && log) {
+    const safeBreak = Number(breakTime) || 5;
+
     if (status === 'pause') {
       log.status = 'paused';
-      log.breakTime += breakTime;
+      log.breakTime += safeBreak;
       log.breakCount += 1;
     } else if (status === 'end') {
       log.status = 'ended';
       log.endTime = new Date();
     } else if (status === 'auto-pause') {
       log.status = 'auto-paused';
-      log.breakTime += breakTime;
+      log.breakTime += safeBreak;
       log.breakCount += 1;
       log.approveness = 'Pending';
     }
+
     await log.save();
     return res.json({ success: true });
   }
@@ -91,7 +94,6 @@ exports.askForApproval = async (req, res) => {
     { approveness: 'Pending' }
   );
 
-  // ✅ Real-time emit to all admin panels
   if (global._io) {
     global._io.emit('approval_request', {
       userId: user._id,
@@ -104,7 +106,7 @@ exports.askForApproval = async (req, res) => {
   res.json({ success: true });
 };
 
-// 5. REDUNDANT (OPTIONAL)
+// 5. REDUNDANT REQUEST ENDPOINT
 exports.requestApproval = async (req, res) => {
   const today = moment().startOf('day').toDate();
   await Log.updateOne(
