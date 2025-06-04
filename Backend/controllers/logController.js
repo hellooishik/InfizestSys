@@ -1,6 +1,8 @@
 const Log = require('../models/Log');
+const User = require('../models/User'); // ✅ Required for askForApproval
 const moment = require('moment');
 
+// 1. START, PAUSE, AUTO-PAUSE, END
 exports.logTimeEvent = async (req, res) => {
   const userId = req.session.userId;
   const { status, break: breakTime } = req.body;
@@ -10,12 +12,19 @@ exports.logTimeEvent = async (req, res) => {
 
   if (status === 'start') {
     if (!log || log.status === 'ended') {
-      log = new Log({ userId, startTime: new Date(), logDate: today });
-      await log.save();
+      log = new Log({
+        userId,
+        startTime: new Date(),
+        logDate: today,
+        status: 'running',
+        breakTime: 0,
+        breakCount: 0,
+        approveness: 'None'
+      });
     } else {
       log.status = 'running';
-      await log.save();
     }
+    await log.save();
     return res.json({ success: true });
   }
 
@@ -40,9 +49,11 @@ exports.logTimeEvent = async (req, res) => {
   res.status(400).json({ message: 'Invalid operation' });
 };
 
+// 2. SESSION STATUS
 exports.getSessionStatus = async (req, res) => {
   const today = moment().startOf('day').toDate();
   const log = await Log.findOne({ userId: req.session.userId, logDate: today });
+
   if (!log) return res.json({ success: true, data: { status: 'none' } });
 
   const secondsWorked = log.endTime
@@ -62,6 +73,7 @@ exports.getSessionStatus = async (req, res) => {
   });
 };
 
+// 3. CHECK IF APPROVED
 exports.checkApproval = async (req, res) => {
   const today = moment().startOf('day').toDate();
   const log = await Log.findOne({ userId: req.session.userId, logDate: today });
@@ -69,6 +81,30 @@ exports.checkApproval = async (req, res) => {
   res.json({ success: true, data: { approved } });
 };
 
+// 4. EMPLOYEE CLICKS "ASK FOR APPROVAL"
+exports.askForApproval = async (req, res) => {
+  const user = await User.findById(req.session.userId);
+  const today = moment().startOf('day').toDate();
+
+  await Log.updateOne(
+    { userId: user._id, logDate: today },
+    { approveness: 'Pending' }
+  );
+
+  // ✅ Real-time emit to all admin panels
+  if (global._io) {
+    global._io.emit('approval_request', {
+      userId: user._id,
+      name: user.name,
+      loginId: user.loginId,
+      time: new Date().toLocaleTimeString()
+    });
+  }
+
+  res.json({ success: true });
+};
+
+// 5. REDUNDANT (OPTIONAL)
 exports.requestApproval = async (req, res) => {
   const today = moment().startOf('day').toDate();
   await Log.updateOne(
