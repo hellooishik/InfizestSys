@@ -1,0 +1,93 @@
+/* src/pages/AdminPanel.css */
+
+.admin-panel {
+  animation: fadeIn 0.6s ease-in-out;
+  font-family: 'Segoe UI', sans-serif;
+  padding-bottom: 50px;
+}
+
+h3, h5 {
+  font-weight: 600;
+  color: #2c3e50;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.btn-rounded {
+  border-radius: 50px;
+  padding: 6px 20px;
+}
+
+input, select, button, textarea {
+  transition: all 0.25s ease-in-out;
+}
+
+input:focus, select:focus, textarea:focus {
+  box-shadow: 0 0 8px rgba(25,135,84,0.5);
+  border-color: #198754;
+}
+
+button:hover {
+  transform: translateY(-1px);
+}
+
+.table-striped tbody tr:hover {
+  background-color: #f5f5f5;
+}
+
+.card-custom {
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+  padding: 20px;
+  margin-bottom: 25px;
+  transition: box-shadow 0.3s ease;
+}
+
+.card-custom:hover {
+  box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+}
+
+.logout-btn {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 999;
+  font-size: 14px;
+  padding: 6px 12px;
+}
+
+.table thead th {
+  background-color: #f1f1f1;
+  font-weight: bold;
+}
+
+.table td, .table th {
+  vertical-align: middle;
+}
+
+.pagination-btn {
+  min-width: 36px;
+  border-radius: 6px;
+  margin: 0 2px;
+}
+
+.pagination-btn:hover {
+  transform: scale(1.1);
+  background-color: #0d6efd;
+  color: white;
+}
+
+.fade-in {
+  animation: fadeIn 0.6s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(15px); }
+  to { opacity: 1; transform: translateY(0); }
+}

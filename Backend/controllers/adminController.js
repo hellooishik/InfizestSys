@@ -1,5 +1,6 @@
 const User = require('../models/User');
 const Log = require('../models/Log');
+const Task = require('../models/Task'); // ✅ REQUIRED for getAllTasks
 const { exportToCSV } = require('../utils/csvExport');
 exports.addUser = async (req, res) => {
   const { name, email, loginId, password, isAdmin = false } = req.body;
@@ -65,3 +66,8 @@ exports.exportCSV = async (req, res) => {
   exportToCSV(logs, res);
 };
 
+// In adminController.js
+exports.getAllTasks = async (req, res) => {
+  const tasks = await Task.find().populate('assignedTo');
+  res.json(tasks);
+};
