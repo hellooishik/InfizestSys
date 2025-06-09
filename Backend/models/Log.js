@@ -13,8 +13,7 @@ const LogSchema = new mongoose.Schema({
   breakCount: { type: Number, default: 0 },
   approveness: {
     type: String,
-    enum: ['None', 'Pending', 'Approved', 'Denied'], // ✅ 'None' added
-    default: 'None'
+    enum: ['None', 'Pending', 'Approved', 'Denied'],
   },
   logDate: Date
 }, { timestamps: true });

@@ -1,16 +1,12 @@
 const express = require('express');
 const router = express.Router();
 const { requireLogin } = require('../utils/authMiddleware');
-const {
-  logTimeEvent,
-  getSessionStatus,
-  checkApproval,
-  requestApproval
-} = require('../controllers/logController');
+const logController = require('../controllers/logController'); // ✅ Import the whole controller
 
-router.post('/', requireLogin, logTimeEvent);
-router.get('/session', requireLogin, getSessionStatus);
-router.get('/approval', requireLogin, checkApproval);
-router.post('/ask', requireLogin, requestApproval);
+router.post('/', requireLogin, logController.logTimeEvent);
+router.get('/session', requireLogin, logController.getSessionStatus);
+router.get('/approval', requireLogin, logController.checkApproval);
+router.post('/ask', requireLogin, logController.askForApproval);
+router.post('/admin/approve', logController.adminApproveResume); // ✅ Fixed
 
 module.exports = router;

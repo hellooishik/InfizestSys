@@ -1,21 +1,20 @@
-import React, { useEffect, useState, useContext, useRef } from 'react';
+import React, { useEffect, useState, useContext , useRef } from 'react';
 import axios from 'axios';
 import { UserContext } from '../context/UserContext';
 import { useNavigate } from 'react-router-dom';
-import "./Dashboard.css";
+import './Dashboard.css';
 
 function Dashboard() {
   const { user, setUser } = useContext(UserContext);
   const navigate = useNavigate();
-
   const [status, setStatus] = useState('');
   const [breakTime, setBreakTime] = useState(0);
   const [workedTime, setWorkedTime] = useState(0);
   const [approved, setApproved] = useState(false);
-  const [tasks, setTasks] = useState([]);
   const [timer, setTimer] = useState(null);
-
-  const currentStatus = useRef('');
+  const [tasks, setTasks] = useState([]);
+  const [showModal, setShowModal] = useState(false);
+  const [inactivityTimeout, setInactivityTimeout] = useState(null);
 
   const fetchSession = async () => {
     try {
@@ -25,12 +24,20 @@ function Dashboard() {
       setBreakTime(data.break_time);
       setWorkedTime(data.worked_seconds);
       setApproved(data.approveness === 'Approved');
-      currentStatus.current = data.status;
+
+      if (data.status === 'auto-paused' && data.approveness !== 'Approved') {
+        setShowModal(true);
+      } else {
+        setShowModal(false);
+      }
     } catch (err) {
       console.error('Failed to fetch session', err);
     }
   };
-
+  const statusRef = useRef(status);
+useEffect(() => {
+  statusRef.current = status;
+}, [status]);
   const fetchTasks = async () => {
     try {
       const res = await axios.get('/api/tasks/my', { withCredentials: true });
@@ -41,8 +48,12 @@ function Dashboard() {
   };
 
   const handleAction = async (actionStatus, extra = {}) => {
-    await axios.post('/api/log', { status: actionStatus, ...extra }, { withCredentials: true });
-    fetchSession();
+    try {
+      await axios.post('/api/log', { status: actionStatus, ...extra }, { withCredentials: true });
+      fetchSession();
+    } catch (err) {
+      console.error('Failed to update log status', err);
+    }
   };
 
   const requestApproval = async () => {
@@ -57,15 +68,23 @@ function Dashboard() {
   };
 
   const submitTask = async (id) => {
-    await axios.post(`/api/tasks/${id}/submit`, {}, { withCredentials: true });
-    fetchTasks();
+    try {
+      await axios.post(`/api/tasks/${id}/submit`, {}, { withCredentials: true });
+      fetchTasks();
+    } catch (err) {
+      console.error('Failed to submit task', err);
+    }
   };
 
   const rejectTask = async (id) => {
     const reason = prompt('Enter rejection reason:');
     if (!reason) return;
-    await axios.post(`/api/tasks/${id}/reject`, { reason }, { withCredentials: true });
-    fetchTasks();
+    try {
+      await axios.post(`/api/tasks/${id}/reject`, { reason }, { withCredentials: true });
+      fetchTasks();
+    } catch (err) {
+      console.error('Failed to reject task', err);
+    }
   };
 
   const formatTime = (seconds) => {
@@ -90,36 +109,36 @@ function Dashboard() {
     return 'Good evening';
   };
 
-  // Inactivity tracking (auto-pause after 30 sec)
-  const startInactivityMonitor = () => {
-    let timeout;
-    const resetTimer = () => {
-      clearTimeout(timeout);
-      timeout = setTimeout(() => {
-        if (currentStatus.current === 'running') {
-          handleAction('auto-pause');
-        }
-      }, 30000);
-    };
+const startInactivityMonitor = () => {
+  const activityEvents = ['mousemove', 'keydown', 'mousedown', 'touchstart'];
 
-    const activityEvents = ['mousemove', 'keydown', 'mousedown', 'touchstart'];
-    activityEvents.forEach(event => window.addEventListener(event, resetTimer));
-    resetTimer();
-
-    return () => {
-      activityEvents.forEach(event => window.removeEventListener(event, resetTimer));
-      clearTimeout(timeout);
-    };
+  const resetTimer = () => {
+    clearTimeout(inactivityTimeout);
+    const timeout = setTimeout(() => {
+      if (statusRef.current === 'running') {
+        handleAction('auto-pause');
+      }
+    }, 60000); // 1 minute
+    setInactivityTimeout(timeout);
   };
+
+  activityEvents.forEach(event => window.addEventListener(event, resetTimer));
+  resetTimer();
+
+  return () => {
+    activityEvents.forEach(event => window.removeEventListener(event, resetTimer));
+    clearTimeout(inactivityTimeout);
+  };
+};
 
   useEffect(() => {
     if (!user) return navigate('/');
     fetchSession();
     fetchTasks();
-    const sessionInterval = setInterval(fetchSession, 10000);
+    const interval = setInterval(fetchSession, 10000);
     const cleanup = startInactivityMonitor();
     return () => {
-      clearInterval(sessionInterval);
+      clearInterval(interval);
       cleanup();
     };
   }, [user]);
@@ -136,7 +155,7 @@ function Dashboard() {
     }
   }, [status]);
 
-  const isBlocked = status === 'auto-pause' && !approved;
+  const isBlocked = status === 'auto-paused' && !approved;
   const breakExceeded = breakTime >= 60;
 
   return (
@@ -158,14 +177,26 @@ function Dashboard() {
       </div>
 
       <div className="mb-4">
-        <button className="btn btn-success me-2" onClick={() => handleAction('start')} disabled={isBlocked}>Start</button>
-        <button className="btn btn-warning me-2" onClick={() => handleAction('pause', { break: 5 })} disabled={breakExceeded || isBlocked}>Take a Break</button>
-        <button className="btn btn-danger me-2" onClick={() => handleAction('end')} disabled={isBlocked}>End Day</button>
-        <button className="btn btn-info" onClick={requestApproval}>Ask for Approval</button>
+        <button className="btn btn-success me-2" onClick={() => handleAction('start')} disabled={isBlocked}>
+          Start
+        </button>
+        <button className="btn btn-warning me-2" onClick={() => handleAction('pause', { break: 5 })} disabled={breakExceeded || isBlocked}>
+          Take a Break
+        </button>
+        <button className="btn btn-danger me-2" onClick={() => handleAction('end')} disabled={isBlocked}>
+          End Day
+        </button>
+        <button className="btn btn-info" onClick={requestApproval}>
+          Ask for Approval
+        </button>
       </div>
 
-      {isBlocked && <p className="text-danger">⏳ Timer paused due to inactivity. Waiting for admin approval.</p>}
-      {approved && <p className="text-success">✅ Approved by admin. You may resume.</p>}
+      {isBlocked && (
+        <p className="text-danger">⏳ Timer paused due to inactivity. Waiting for admin approval.</p>
+      )}
+      {approved && (
+        <p className="text-success">✅ Approved by admin. You may resume.</p>
+      )}
 
       <h5 className="mt-4">📝 Assigned Tasks</h5>
       <table className="table table-bordered">
@@ -191,7 +222,9 @@ function Dashboard() {
                   </div>
                 ))}
               </td>
-              <td><a href={task.googleDocsLink} target="_blank" rel="noreferrer">View</a></td>
+              <td>
+                <a href={task.googleDocsLink} target="_blank" rel="noreferrer">View</a>
+              </td>
               <td>
                 {task.status !== 'submitted' && task.status !== 'rejected' ? (
                   <button className="btn btn-sm btn-success" onClick={() => submitTask(task._id)}>Submit</button>
@@ -206,6 +239,19 @@ function Dashboard() {
           ))}
         </tbody>
       </table>
+
+      {showModal && (
+        <div className="modal-backdrop">
+          <div className="modal-box text-center">
+            <h4>🛑 Inactivity Detected</h4>
+            <p>We stopped your timer due to inactivity. Please contact your admin for permission to resume.</p>
+            <div className="d-flex justify-content-center gap-3 mt-3">
+              <button className="btn btn-info" onClick={requestApproval}>Ask for Approval</button>
+              <button className="btn btn-danger" onClick={() => handleAction('end')}>End My Day</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

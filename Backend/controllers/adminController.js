@@ -1,6 +1,6 @@
 const User = require('../models/User');
 const Log = require('../models/Log');
-const Task = require('../models/Task'); // ✅ REQUIRED for getAllTasks
+const Task = require('../models/Task'); // REQUIRED for getAllTasks
 const { exportToCSV } = require('../utils/csvExport');
 exports.addUser = async (req, res) => {
   const { name, email, loginId, password, isAdmin = false } = req.body;
@@ -71,4 +71,28 @@ exports.exportCSV = async (req, res) => {
 exports.getAllTasks = async (req, res) => {
   const tasks = await Task.find().populate('assignedTo');
   res.json(tasks);
+};
+exports.approveOrRejectLog = async (req, res) => {
+  const { id } = req.params;
+  const { action } = req.body;
+  const today = new Date();
+  const log = await Log.findOne({ userId: id, logDate: { $gte: today.setHours(0,0,0,0) } });
+
+  if (!log) {
+    return res.status(404).json({ success: false, message: 'Log not found' });
+  }
+
+  if (action === 'approve') {
+    log.approveness = 'Approved';
+    log.status = 'running';
+  } else if (action === 'reject') {
+    log.approveness = 'Denied';
+    log.status = 'ended';
+    log.endTime = new Date();
+  } else {
+    return res.status(400).json({ success: false, message: 'Invalid action' });
+  }
+
+  await log.save();
+  return res.json({ success: true, message: `User has been ${action}d.` });
 };
