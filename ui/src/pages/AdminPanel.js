@@ -5,11 +5,15 @@ import { useNavigate } from 'react-router-dom';
 import Toastify from 'toastify-js';
 import 'toastify-js/src/toastify.css';
 import io from 'socket.io-client';
-import './AdminPanel.css';
+import '../css/AdminPanel.css';
+
+// ... (your imports remain unchanged)
+import { Moon, Sun } from 'lucide-react'; // Optional: use react-icons if you prefer
 
 function AdminPanel() {
   const { user, setUser } = useContext(UserContext);
   const navigate = useNavigate();
+
   const [users, setUsers] = useState([]);
   const [tasks, setTasks] = useState([]);
   const [logs, setLogs] = useState([]);
@@ -18,6 +22,14 @@ function AdminPanel() {
   const [newUser, setNewUser] = useState({ name: '', email: '', loginId: '', password: '' });
   const [taskForm, setTaskForm] = useState({ jobId: '', loginId: '', deadline: '', googleDocsLink: '', files: [] });
   const [currentPage, setCurrentPage] = useState(1);
+  const [darkMode, setDarkMode] = useState(true);
+  const [visibleSections, setVisibleSections] = useState({
+    addUser: false,
+    assignTask: false,
+    approvals: false,
+    userList: true
+  });
+
   const itemsPerPage = 10;
 
   useEffect(() => {
@@ -41,6 +53,10 @@ function AdminPanel() {
     loadLogs();
   }, [user]);
 
+  useEffect(() => {
+    document.body.classList.toggle('dark-mode', darkMode);
+  }, [darkMode]);
+
   const loadUsers = async () => {
     const res = await axios.get('/api/admin/users', { withCredentials: true });
     setUsers(res.data);
@@ -55,6 +71,10 @@ function AdminPanel() {
   const loadLogs = async () => {
     const res = await axios.get('/api/admin/logs/today', { withCredentials: true });
     setLogs(res.data);
+  };
+
+  const toggleSection = (section) => {
+    setVisibleSections(prev => ({ ...prev, [section]: !prev[section] }));
   };
 
   const handleLogout = async () => {
@@ -82,7 +102,7 @@ function AdminPanel() {
     a.href = window.URL.createObjectURL(blob);
     a.download = 'tasks.csv';
     a.click();
-  };
+  }; 
 
   const assignTask = async (e) => {
     e.preventDefault();
@@ -91,20 +111,46 @@ function AdminPanel() {
       if (key === 'files') [...val].forEach(f => formData.append('files', f));
       else formData.append(key, val);
     });
-
-    await axios.post('/api/tasks', formData, {
-      withCredentials: true,
-      headers: { 'Content-Type': 'multipart/form-data' }
-    });
-    setTaskForm({ jobId: '', loginId: '', deadline: '', googleDocsLink: '', files: [] });
-    loadTasks();
+  try {
+  await axios.post('/api/tasks', formData, {
+    withCredentials: true,
+    headers: { 'Content-Type': 'multipart/form-data' }
+  });
+  Toastify({
+    text: `Task "${taskForm.jobId}" assigned to "${taskForm.loginId}"`,
+    backgroundColor: 'linear-gradient(to right, #007991, #78ffd6)',
+    duration: 3000
+  }).showToast();
+  setTaskForm({ jobId: '', loginId: '', deadline: '', googleDocsLink: '', files: [] });
+  loadTasks();
+} catch (error) {
+  Toastify({
+    text: `Failed to assign task: ${error.response?.data?.message || error.message}`,
+    backgroundColor: 'linear-gradient(to right, #ff416c, #ff4b2b)',
+    duration: 4000
+  }).showToast();
+}
   };
 
   const addUser = async (e) => {
     e.preventDefault();
-    await axios.post('/api/admin/users', newUser, { withCredentials: true });
-    setNewUser({ name: '', email: '', loginId: '', password: '' });
-    loadUsers();
+    try {
+  await axios.post('/api/admin/users', newUser, { withCredentials: true });
+  Toastify({
+    text: `User "${newUser.name}" added successfully!`,
+    backgroundColor: 'linear-gradient(to right, #00b09b, #96c93d)',
+    duration: 3000
+  }).showToast();
+  setNewUser({ name: '', email: '', loginId: '', password: '' });
+  loadUsers();
+} catch (error) {
+  Toastify({
+    text: `Failed to add user: ${error.response?.data?.message || error.message}`,
+    backgroundColor: 'linear-gradient(to right, #ff416c, #ff4b2b)',
+    duration: 4000
+  }).showToast();
+}
+
   };
 
   const updateApproval = async (userId, action) => {
@@ -122,7 +168,7 @@ function AdminPanel() {
     const [newPassword, setNewPassword] = useState('');
     const savePassword = async () => {
       await axios.put(`/api/admin/users/${userId}`, { password: newPassword }, { withCredentials: true });
-      Toastify({ text: '🔐 Password updated', backgroundColor: 'green' }).showToast();
+      Toastify({ text: 'Password updated', backgroundColor: 'green' }).showToast();
       setEditing(false);
     };
     return editing ? (
@@ -147,19 +193,34 @@ function AdminPanel() {
   const totalPages = Math.ceil(filteredTasks.length / itemsPerPage);
 
   return (
-    <div className="container mt-4">
-      <div className="d-flex justify-content-between align-items-center mb-3">
-        <h3>Admin Dashboard</h3>
-        <button className="btn btn-outline-danger" onClick={handleLogout}>Logout</button>
+    <div className="d-flex">
+     
+      {/* Sidebar */}
+      <div className="sidebar">
+        <h4 className="mb-4">Admin</h4>
+        <div className="toggle-btn" onClick={() => toggleSection('addUser')}>Add New User</div>
+        <div className="toggle-btn" onClick={() => toggleSection('assignTask')}>Assign Task</div>
+        <div className="toggle-btn" onClick={() => toggleSection('approvals')}>Approval Requests</div>
+        <div className="toggle-btn" onClick={() => toggleSection('userList')}>User List</div>
+        <div className="mt-4">
+          <button className="btn btn-outline-secondary w-100" onClick={() => setDarkMode(!darkMode)}>
+            {darkMode ? 'Light Mode' : 'Dark Mode'}
+          </button>
+        </div>
+        <div className="mt-3">
+          <button className="btn btn-outline-danger w-100" onClick={handleLogout}>Logout</button>
+        </div>
       </div>
+     
 
-      {/* Add User & Assign Task */}
-      <div className="row">
-        <div className="col-md-6">
+      {/* Main Content */}
+      <div className="container mt-4">
+          <h2 className="text-center mb-4 fw-bold">Infizest Admin Panel</h2>
+        {visibleSections.addUser && (
           <div className="card p-3 mb-4 shadow-sm">
             <h5 className="text-primary">➕ Add New User</h5>
             <form onSubmit={addUser}>
-              {['name', 'email', 'loginId', 'password'].map((field, idx) => (
+              {['name', 'email', 'loginId', 'password'].map((field) => (
                 <input
                   key={field}
                   className="form-control mb-2"
@@ -172,9 +233,9 @@ function AdminPanel() {
               <button className="btn btn-primary w-100">Add User</button>
             </form>
           </div>
-        </div>
+        )}
 
-        <div className="col-md-6">
+        {visibleSections.assignTask && (
           <div className="card p-3 mb-4 shadow-sm">
             <h5 className="text-success">Assign Task</h5>
             <form onSubmit={assignTask}>
@@ -186,115 +247,127 @@ function AdminPanel() {
               <button className="btn btn-success w-100">Assign Task</button>
             </form>
           </div>
+        )}
+
+        {/* Search + Table */}
+        <div className="d-flex mb-3">
+          <input className="form-control w-50" placeholder="Search Job ID or Employee" value={search} onChange={(e) => {
+            const query = e.target.value.toLowerCase();
+            setSearch(query);
+            const filtered = tasks.filter(t => t.jobId.toLowerCase().includes(query) || t.assignedTo?.name?.toLowerCase().includes(query));
+            setFilteredTasks(filtered);
+          }} />
+          <button className="btn btn-outline-secondary ms-2" onClick={exportCSV}>Export CSV</button>
         </div>
-      </div>
 
-      {/* Search + Tasks Table */}
-      <div className="d-flex mb-3">
-        <input className="form-control w-50" placeholder="Search Job ID or Employee" value={search} onChange={(e) => {
-          const query = e.target.value.toLowerCase();
-          setSearch(query);
-          const filtered = tasks.filter(t => t.jobId.toLowerCase().includes(query) || t.assignedTo?.name?.toLowerCase().includes(query));
-          setFilteredTasks(filtered);
-        }} />
-        <button className="btn btn-outline-secondary ms-2" onClick={exportCSV}>Export CSV</button>
-      </div>
-
-      {/* Assigned Tasks */}
-      <table className="table table-bordered table-hover">
-        <thead>
-          <tr>
-            <th>Job ID</th>
-            <th>Employee</th>
-            <th>Deadline</th>
-            <th>Google Docs</th>
-            <th>Status</th>
-            <th>Update</th>
-          </tr>
-        </thead>
-        <tbody>
-          {currentTasks.map(task => (
-            <tr key={task._id}>
-              <td>{task.jobId}</td>
-              <td>{task.assignedTo?.name}</td>
-              <td>{new Date(task.deadline).toLocaleString()}</td>
-              <td><a href={task.googleDocsLink} target="_blank" rel="noreferrer">View</a></td>
-              <td>{task.status}</td>
-              <td>
-                <select className="form-select" value={task.status} onChange={e => updateStatus(task._id, e.target.value)}>
-                  <option value="pending">Pending</option>
-                  <option value="working">Working</option>
-                  <option value="submitted">Submitted</option>
-                  <option value="done">Done</option>
-                  <option value="rejected">Rejected</option>
-                </select>
-              </td>
+        {/* Task Table */}
+        <table className="table table-bordered table-hover">
+          <thead>
+            <tr>
+              <th>Job ID</th>
+              <th>Employee</th>
+              <th>Deadline</th>
+              <th>Google Docs</th>
+              <th>Status</th>
+              <th>Update</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
-
-      {/* Approval Requests */}
-      <h5 className="mt-5">Approval Requests</h5>
-      <table className="table table-bordered">
-        <thead className="table-light">
-          <tr>
-            <th>Employee</th>
-            <th>Status</th>
-            <th>Approveness</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {logs.filter(log => log.approveness === 'Pending').map(log => {
-            const u = users.find(u => u._id === log.userId);
-            return (
-              <tr key={log._id}>
-                <td>{u?.name} ({u?.loginId})</td>
-                <td>{log.status}</td>
-                <td className="text-warning fw-bold">Pending</td>
+          </thead>
+          <tbody>
+            {currentTasks.map(task => (
+              <tr key={task._id}>
+                <td>{task.jobId}</td>
+                <td>{task.assignedTo?.name}</td>
+                <td>{new Date(task.deadline).toLocaleString()}</td>
+                <td><a href={task.googleDocsLink} target="_blank" rel="noreferrer">View</a></td>
+                <td>{task.status}</td>
                 <td>
-                  <button className="btn btn-sm btn-success me-2" onClick={() => updateApproval(log.userId, 'approve')}>Approve</button>
-                  <button className="btn btn-sm btn-danger" onClick={() => updateApproval(log.userId, 'reject')}>Reject</button>
+                  <select className="form-select" value={task.status} onChange={e => updateStatus(task._id, e.target.value)}>
+                    <option value="pending">Pending</option>
+                    <option value="working">Working</option>
+                    <option value="submitted">Submitted</option>
+                    <option value="done">Done</option>
+                    <option value="rejected">Rejected</option>
+                  </select>
                 </td>
               </tr>
-            );
-          })}
-        </tbody>
-      </table>
+            ))}
+          </tbody>
+        </table>
 
-      {/* User List */}
-      <h5 className="mt-5">👥 Employee User List</h5>
-      <table className="table table-striped">
-        <thead>
-          <tr>
-            <th>Name</th>
-            <th>Login ID</th>
-            <th>Status</th>
-            <th>Change Password</th>
-          </tr>
-        </thead>
-        <tbody>
-          {users.map(u => (
-            <tr key={u._id}>
-              <td>{u.name}</td>
-              <td>{u.loginId}</td>
-              <td className={getStatus(u._id) === 'Online' ? 'text-success' : 'text-muted'}>{getStatus(u._id)}</td>
-              <td><ChangePassword userId={u._id} /></td>
-            </tr>
+        {visibleSections.approvals && (
+          <>
+            <h5 className="mt-5">Approval Requests</h5>
+            <table className="table table-bordered">
+              <thead className="table-light">
+                <tr>
+                  <th>Employee</th>
+                  <th>Status</th>
+                  <th>Approveness</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {logs.filter(log => log.approveness === 'Pending').map(log => {
+                  const u = users.find(u => u._id === log.userId);
+                  return (
+                    <tr key={log._id}>
+                      <td>{u?.name} ({u?.loginId})</td>
+                      <td>{log.status}</td>
+                      <td className="text-warning fw-bold">Pending</td>
+                      <td>
+                        <button className="btn btn-sm btn-success me-2" onClick={() => updateApproval(log.userId, 'approve')}>Approve</button>
+                        <button className="btn btn-sm btn-danger" onClick={() => updateApproval(log.userId, 'reject')}>Reject</button>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </>
+        )}
+
+        {visibleSections.userList && (
+          <>
+            <h5 className="mt-5">Employee User List</h5>
+            <table className="table table-striped">
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Login ID</th>
+                  <th>Status</th>
+                  <th>Change Password</th>
+                </tr>
+              </thead>
+              <tbody>
+                {users.map(u => (
+                  <tr key={u._id}>
+                    <td>{u.name}</td>
+                    <td>{u.loginId}</td>
+                    <td className={getStatus(u._id) === 'Online' ? 'text-success' : 'text-muted'}>{getStatus(u._id)}</td>
+                    <td><ChangePassword userId={u._id} /></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </>
+        )}
+
+        {/* Pagination */}
+        <div className="d-flex justify-content-center mt-3">
+          {Array.from({ length: totalPages }, (_, i) => (
+            <button key={i} className={`btn btn-sm ${i + 1 === currentPage ? 'btn-primary' : 'btn-outline-primary'} mx-1`} onClick={() => setCurrentPage(i + 1)}>
+              {i + 1}
+            </button>
           ))}
-        </tbody>
-      </table>
-
-      {/* Pagination */}
-      <div className="d-flex justify-content-center mt-3">
-        {Array.from({ length: totalPages }, (_, i) => (
-          <button key={i} className={`btn btn-sm ${i + 1 === currentPage ? 'btn-primary' : 'btn-outline-primary'} mx-1`} onClick={() => setCurrentPage(i + 1)}>
-            {i + 1}
-          </button>
-        ))}
+        </div>
+          <footer className="text-center mt-5 mb-3 text-muted">
+  © {new Date().getFullYear()} Infizest. All rights reserved.
+</footer>
       </div>
+    
+
     </div>
+    
   );
 }
 

@@ -1,0 +1,97 @@
+/* src/pages/Login.css */
+.login-hero {
+  display: flex;
+  height: 100vh;
+  overflow: hidden;
+  background: linear-gradient(120deg, #141e30, #243b55);
+  color: #fff;
+  font-family: 'Segoe UI', sans-serif;
+}
+
+.login-left {
+  flex: 1;
+  padding: 5% 8%;
+  background: url('https://learnenglish.britishcouncil.org/sites/podcasts/files/RS7522_ThinkstockPhotos-622015126-hig_0.jpg') no-repeat center center / cover;
+  position: relative;
+}
+
+
+.login-left::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.6);
+}
+
+.login-left * {
+  position: relative;
+  z-index: 1;
+}
+
+.brand-name {
+  font-size: 48px;
+  font-weight: bold;
+  margin-bottom: 10px;
+  color: #00c6ff;
+}
+
+.tagline {
+  font-size: 20px;
+  margin-bottom: 30px;
+  color: #ddd;
+}
+
+.features {
+  list-style: none;
+  padding: 0;
+  font-size: 16px;
+  line-height: 2;
+  color: #ccc;
+}
+
+.login-right {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(8px);
+}
+
+.login-card {
+  background: rgba(255, 255, 255, 0.1);
+  padding: 40px;
+  border-radius: 12px;
+  width: 100%;
+  max-width: 400px;
+  box-shadow: 0 0 30px rgba(0,0,0,0.4);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255,255,255,0.2);
+}
+
+.login-card h3 {
+  color: #fff;
+  margin-bottom: 10px;
+}
+
+.subtext {
+  color: #ccc;
+  font-size: 14px;
+  margin-bottom: 20px;
+}
+
+.login-card .form-control {
+  background-color: rgba(255,255,255,0.8);
+  border: none;
+  color: #000;
+}
+
+.login-card .form-control:focus {
+  box-shadow: none;
+}
+
+.footer-text {
+  font-size: 12px;
+  color: #aaa;
+  text-align: center;
+  margin-top: 20px;
+}

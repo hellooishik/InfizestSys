@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useContext , useRef } from 'react';
+import React, { useEffect, useState, useContext, useRef } from 'react';
 import axios from 'axios';
 import { UserContext } from '../context/UserContext';
 import { useNavigate } from 'react-router-dom';
@@ -14,7 +14,13 @@ function Dashboard() {
   const [timer, setTimer] = useState(null);
   const [tasks, setTasks] = useState([]);
   const [showModal, setShowModal] = useState(false);
-  const [inactivityTimeout, setInactivityTimeout] = useState(null);
+
+  const inactivityTimeoutRef = useRef(null);
+  const statusRef = useRef(status);
+
+  useEffect(() => {
+    statusRef.current = status;
+  }, [status]);
 
   const fetchSession = async () => {
     try {
@@ -24,20 +30,12 @@ function Dashboard() {
       setBreakTime(data.break_time);
       setWorkedTime(data.worked_seconds);
       setApproved(data.approveness === 'Approved');
-
-      if (data.status === 'auto-paused' && data.approveness !== 'Approved') {
-        setShowModal(true);
-      } else {
-        setShowModal(false);
-      }
+      setShowModal(data.status === 'auto-paused' && data.approveness !== 'Approved');
     } catch (err) {
       console.error('Failed to fetch session', err);
     }
   };
-  const statusRef = useRef(status);
-useEffect(() => {
-  statusRef.current = status;
-}, [status]);
+
   const fetchTasks = async () => {
     try {
       const res = await axios.get('/api/tasks/my', { withCredentials: true });
@@ -68,23 +66,15 @@ useEffect(() => {
   };
 
   const submitTask = async (id) => {
-    try {
-      await axios.post(`/api/tasks/${id}/submit`, {}, { withCredentials: true });
-      fetchTasks();
-    } catch (err) {
-      console.error('Failed to submit task', err);
-    }
+    await axios.post(`/api/tasks/${id}/submit`, {}, { withCredentials: true });
+    fetchTasks();
   };
 
   const rejectTask = async (id) => {
     const reason = prompt('Enter rejection reason:');
     if (!reason) return;
-    try {
-      await axios.post(`/api/tasks/${id}/reject`, { reason }, { withCredentials: true });
-      fetchTasks();
-    } catch (err) {
-      console.error('Failed to reject task', err);
-    }
+    await axios.post(`/api/tasks/${id}/reject`, { reason }, { withCredentials: true });
+    fetchTasks();
   };
 
   const formatTime = (seconds) => {
@@ -96,7 +86,7 @@ useEffect(() => {
 
   const formatCountdown = (deadline) => {
     const diff = new Date(deadline) - new Date();
-    if (diff <= 0) return '⏰ Deadline passed';
+    if (diff <= 0) return 'Deadline passed';
     const hours = Math.floor(diff / 3600000);
     const mins = Math.floor((diff % 3600000) / 60000);
     return `${hours}h ${mins}m left`;
@@ -109,27 +99,31 @@ useEffect(() => {
     return 'Good evening';
   };
 
-const startInactivityMonitor = () => {
-  const activityEvents = ['mousemove', 'keydown', 'mousedown', 'touchstart'];
+  const startInactivityMonitor = () => {
+    const events = ['mousemove', 'keydown', 'mousedown', 'touchstart'];
 
-  const resetTimer = () => {
-    clearTimeout(inactivityTimeout);
-    const timeout = setTimeout(() => {
-      if (statusRef.current === 'running') {
-        handleAction('auto-pause');
+    const resetTimer = () => {
+      if (inactivityTimeoutRef.current) {
+        clearTimeout(inactivityTimeoutRef.current);
       }
-    }, 60000); // 1 minute
-    setInactivityTimeout(timeout);
-  };
 
-  activityEvents.forEach(event => window.addEventListener(event, resetTimer));
-  resetTimer();
+      inactivityTimeoutRef.current = setTimeout(() => {
+        if (statusRef.current === 'running') {
+          handleAction('auto-pause');
+        }
+      }, 60000); // Full 1 minute
+    };
 
-  return () => {
-    activityEvents.forEach(event => window.removeEventListener(event, resetTimer));
-    clearTimeout(inactivityTimeout);
+    events.forEach(event => window.addEventListener(event, resetTimer));
+    resetTimer();
+
+    return () => {
+      events.forEach(event => window.removeEventListener(event, resetTimer));
+      if (inactivityTimeoutRef.current) {
+        clearTimeout(inactivityTimeoutRef.current);
+      }
+    };
   };
-};
 
   useEffect(() => {
     if (!user) return navigate('/');
@@ -159,91 +153,87 @@ const startInactivityMonitor = () => {
   const breakExceeded = breakTime >= 60;
 
   return (
-    <div className="container mt-4">
-      <div className="d-flex justify-content-between align-items-center mb-3">
-        <h3>{greeting()}, {user?.name}</h3>
-        <button onClick={handleLogout} className="btn btn-outline-danger">Logout</button>
+    <div className="dashboard-wrapper">
+      <div className="dashboard-header d-flex justify-content-between align-items-center mb-4">
+        <h2 className="fw-bold">{greeting()}, {user?.name}</h2>
+        <button className="btn btn-outline-dark" onClick={handleLogout}>Logout</button>
       </div>
 
-      <div className="mb-2">
-        <p><strong>Status:</strong> {status}</p>
-        <p><strong>Worked Time:</strong> {formatTime(workedTime)}</p>
-        <p>
-          <strong>Break Time:</strong>{' '}
-          <span className={breakExceeded ? 'text-danger fw-bold' : ''}>
-            {breakTime} min
-          </span>
-        </p>
+      <div className="info-cards row g-3 mb-4">
+        <div className="col-md-4">
+          <div className="card shadow-sm p-3">
+            <h6>Status</h6>
+            <span className={`badge ${status === 'running' ? 'bg-success' : 'bg-secondary'}`}>{status}</span>
+          </div>
+        </div>
+        <div className="col-md-4">
+          <div className="card shadow-sm p-3">
+            <h6>Worked Time</h6>
+            <p className="mb-0">{formatTime(workedTime)}</p>
+          </div>
+        </div>
+        <div className="col-md-4">
+          <div className="card shadow-sm p-3">
+            <h6>Break Time</h6>
+            <p className={`mb-0 ${breakExceeded ? 'text-danger fw-bold' : ''}`}>{breakTime} min</p>
+          </div>
+        </div>
       </div>
 
-      <div className="mb-4">
-        <button className="btn btn-success me-2" onClick={() => handleAction('start')} disabled={isBlocked}>
-          Start
-        </button>
-        <button className="btn btn-warning me-2" onClick={() => handleAction('pause', { break: 5 })} disabled={breakExceeded || isBlocked}>
-          Take a Break
-        </button>
-        <button className="btn btn-danger me-2" onClick={() => handleAction('end')} disabled={isBlocked}>
-          End Day
-        </button>
-        <button className="btn btn-info" onClick={requestApproval}>
-          Ask for Approval
-        </button>
+      <div className="button-group d-flex flex-wrap gap-2 mb-4">
+        <button className="btn btn-success" onClick={() => handleAction('start')} disabled={isBlocked}>Start</button>
+        <button className="btn btn-warning" onClick={() => handleAction('pause', { break: 5 })} disabled={breakExceeded || isBlocked}>Take a Break</button>
+        <button className="btn btn-danger" onClick={() => handleAction('end')} disabled={isBlocked}>End Day</button>
+        <button className="btn btn-info" onClick={requestApproval}>Ask for Approval</button>
       </div>
 
-      {isBlocked && (
-        <p className="text-danger">⏳ Timer paused due to inactivity. Waiting for admin approval.</p>
-      )}
-      {approved && (
-        <p className="text-success">✅ Approved by admin. You may resume.</p>
-      )}
+      {isBlocked && <p className="text-danger mb-3">Timer paused due to inactivity. Waiting for admin approval.</p>}
+      {approved && <p className="text-success mb-3">✅ Approved by admin. You may resume.</p>}
 
-      <h5 className="mt-4">📝 Assigned Tasks</h5>
-      <table className="table table-bordered">
-        <thead>
-          <tr>
-            <th>Job ID</th>
-            <th>Deadline</th>
-            <th>Attachments</th>
-            <th>Docs</th>
-            <th>Submit</th>
-            <th>Reject</th>
-          </tr>
-        </thead>
-        <tbody>
-          {tasks.map(task => (
-            <tr key={task._id}>
-              <td>{task.jobId}</td>
-              <td>{formatCountdown(task.deadline)}</td>
-              <td>
-                {task.files?.map(file => (
-                  <div key={file}>
-                    <a href={`/uploads/${file}`} target="_blank" rel="noreferrer">📎 {file}</a>
-                  </div>
-                ))}
-              </td>
-              <td>
-                <a href={task.googleDocsLink} target="_blank" rel="noreferrer">View</a>
-              </td>
-              <td>
-                {task.status !== 'submitted' && task.status !== 'rejected' ? (
-                  <button className="btn btn-sm btn-success" onClick={() => submitTask(task._id)}>Submit</button>
-                ) : '—'}
-              </td>
-              <td>
-                {task.status !== 'submitted' && task.status !== 'rejected' ? (
-                  <button className="btn btn-sm btn-danger" onClick={() => rejectTask(task._id)}>Reject</button>
-                ) : (task.reason || '—')}
-              </td>
+      <h5 className="mb-3">📋 Assigned Tasks</h5>
+      <div className="table-responsive">
+        <table className="table table-hover table-bordered">
+          <thead className="table-light">
+            <tr>
+              <th>Job ID</th>
+              <th>Deadline</th>
+              <th>Attachments</th>
+              <th>Docs</th>
+              <th>Submit</th>
+              <th>Reject</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {tasks.map(task => (
+              <tr key={task._id}>
+                <td>{task.jobId}</td>
+                <td>{formatCountdown(task.deadline)}</td>
+                <td>
+                  {task.files?.map(file => (
+                    <div key={file}><a href={`/uploads/${file}`} target="_blank" rel="noreferrer">📎 {file}</a></div>
+                  ))}
+                </td>
+                <td><a href={task.googleDocsLink} target="_blank" rel="noreferrer">View</a></td>
+                <td>
+                  {task.status !== 'submitted' && task.status !== 'rejected' ? (
+                    <button className="btn btn-sm btn-outline-success" onClick={() => submitTask(task._id)}>Submit</button>
+                  ) : '—'}
+                </td>
+                <td>
+                  {task.status !== 'submitted' && task.status !== 'rejected' ? (
+                    <button className="btn btn-sm btn-outline-danger" onClick={() => rejectTask(task._id)}>Reject</button>
+                  ) : (task.reason || '—')}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
 
       {showModal && (
         <div className="modal-backdrop">
           <div className="modal-box text-center">
-            <h4>🛑 Inactivity Detected</h4>
+            <h4>Inactivity Detected</h4>
             <p>We stopped your timer due to inactivity. Please contact your admin for permission to resume.</p>
             <div className="d-flex justify-content-center gap-3 mt-3">
               <button className="btn btn-info" onClick={requestApproval}>Ask for Approval</button>

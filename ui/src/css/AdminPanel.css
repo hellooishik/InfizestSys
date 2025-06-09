@@ -1,0 +1,184 @@
+/* 🌌 Smart Modern AdminPanel CSS */
+/* AdminPanel.css Additions */
+body.dark-mode {
+  background-color: #1e1e2f;
+  color: #f1f1f1;
+}
+.card, .table {
+  transition: background-color 0.3s, color 0.3s;
+}
+body.dark-mode .card {
+  background-color: #2a2a3d;
+  color: #fff;
+}
+body.dark-mode .table {
+  background-color: #2a2a3d;
+  color: #fff;
+}
+.sidebar {
+  min-height: 100vh;
+  background-color: #f8f9fa;
+  padding: 1rem;
+  border-right: 1px solid #dee2e6;
+}
+body.dark-mode .sidebar {
+  background-color: #1c1c2b;
+}
+.toggle-btn {
+  cursor: pointer;
+  font-weight: 500;
+  margin-bottom: 0.75rem;
+}
+.toggle-btn:hover {
+  color: #0d6efd;
+}
+.section-hidden {
+  display: none;
+}
+
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: #f8f9fa;
+  color: #333;
+  transition: all 0.3s ease;
+  padding-left: 250px;
+}
+
+body.dark {
+  background: #1e1e2f;
+  color: #f5f5f5;
+}
+
+/* 🌙 Dark Mode Elements */
+body.dark .card,
+body.dark .table,
+body.dark .form-control,
+body.dark .form-select,
+body.dark .btn {
+  background-color: #2b2b3c !important;
+  color: #f1f1f1 !important;
+  border-color: #444 !important;
+}
+
+body.dark .table-bordered th,
+body.dark .table-bordered td {
+  border-color: #444;
+}
+
+/* 🧭 Sidebar */
+.sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 240px;
+  height: 100vh;
+  background-color: #939c12;
+  padding: 20px;
+  color: #fff;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+}
+
+.sidebar h2 {
+  font-size: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+.sidebar button {
+  margin-top: auto;
+  background-color: #ffffff22;
+  border: none;
+  color: #fff;
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.sidebar button:hover {
+  background-color: #ffffff44;
+}
+
+/* 🪄 Toggleable Sections */
+.section-wrapper {
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 0 12px rgba(0, 0, 0, 0.05);
+  margin-bottom: 1.5rem;
+  overflow: hidden;
+}
+
+.section-wrapper.dark {
+  background: #2a2a3a;
+}
+
+.section-toggle {
+  background: #0d6efd;
+  color: #fff;
+  padding: 0.75rem 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  user-select: none;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: background 0.3s;
+}
+
+.section-toggle:hover {
+  background: #084298;
+}
+
+.section-content {
+  padding: 1rem;
+  display: none;
+}
+
+.section-content.show {
+  display: block;
+  animation: slideFade 0.3s ease-in-out;
+}
+
+@keyframes slideFade {
+  0% {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ✨ Buttons */
+.btn {
+  border-radius: 6px;
+  transition: all 0.2s ease-in-out;
+}
+
+.btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* 📱 Responsive */
+@media (max-width: 768px) {
+  body {
+    padding-left: 0;
+  }
+  .sidebar {
+    position: relative;
+    width: 100%;
+    height: auto;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+  }
+}
+
+/* 📦 Card tweaks */
+.card {
+  border-radius: 10px;
+  border: none;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+}
