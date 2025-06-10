@@ -14,13 +14,14 @@ function Dashboard() {
   const [timer, setTimer] = useState(null);
   const [tasks, setTasks] = useState([]);
   const [showModal, setShowModal] = useState(false);
+  const [startTime, setStartTime] = useState(null);
+  const [onBreak, setOnBreak] = useState(false);
+  const breakStartRef = useRef(null);
 
   const inactivityTimeoutRef = useRef(null);
   const statusRef = useRef(status);
 
-  useEffect(() => {
-    statusRef.current = status;
-  }, [status]);
+  useEffect(() => { statusRef.current = status; }, [status]);
 
   const fetchSession = async () => {
     try {
@@ -31,6 +32,7 @@ function Dashboard() {
       setWorkedTime(data.worked_seconds);
       setApproved(data.approveness === 'Approved');
       setShowModal(data.status === 'auto-paused' && data.approveness !== 'Approved');
+      setStartTime(data.start_time);
     } catch (err) {
       console.error('Failed to fetch session', err);
     }
@@ -45,14 +47,35 @@ function Dashboard() {
     }
   };
 
-  const handleAction = async (actionStatus, extra = {}) => {
-    try {
-      await axios.post('/api/log', { status: actionStatus, ...extra }, { withCredentials: true });
-      fetchSession();
-    } catch (err) {
-      console.error('Failed to update log status', err);
-    }
-  };
+const handleAction = async (actionStatus) => {
+  let extra = {};
+
+  if (actionStatus === 'pause') {
+    breakStartRef.current = new Date();      // Record the start of the break
+    setOnBreak(true);                        // UI state flag
+  }
+
+  if (actionStatus === 'start' && onBreak && breakStartRef.current) {
+    const now = new Date();
+    const breakDuration = Math.ceil((now - breakStartRef.current) / 60000); // in minutes
+    extra.break = breakDuration;
+
+    // 🔄 Immediately update the UI with new break time
+    setBreakTime(prev => prev + breakDuration);
+
+    breakStartRef.current = null;
+    setOnBreak(false);
+  }
+
+  await axios.post('/api/log', { status: actionStatus, ...extra }, { withCredentials: true });
+
+  if (actionStatus === 'end') {
+    alert(`✅ Work Summary:\nWorked Time: ${formatTime(workedTime)}\nBreak Time: ${breakTime} min`);
+  }
+
+  fetchSession(); // Sync with backend after update
+};
+
 
   const requestApproval = async () => {
     await axios.post('/api/log/ask', {}, { withCredentials: true });
@@ -78,6 +101,7 @@ function Dashboard() {
   };
 
   const formatTime = (seconds) => {
+    if (!seconds || seconds <= 0) return "Day not started";
     const h = Math.floor(seconds / 3600);
     const m = Math.floor((seconds % 3600) / 60);
     const s = seconds % 60;
@@ -103,15 +127,10 @@ function Dashboard() {
     const events = ['mousemove', 'keydown', 'mousedown', 'touchstart'];
 
     const resetTimer = () => {
-      if (inactivityTimeoutRef.current) {
-        clearTimeout(inactivityTimeoutRef.current);
-      }
-
+      if (inactivityTimeoutRef.current) clearTimeout(inactivityTimeoutRef.current);
       inactivityTimeoutRef.current = setTimeout(() => {
-        if (statusRef.current === 'running') {
-          handleAction('auto-pause');
-        }
-      }, 60000); // Full 1 minute
+        if (statusRef.current === 'running') handleAction('auto-pause');
+      }, 60000);
     };
 
     events.forEach(event => window.addEventListener(event, resetTimer));
@@ -119,9 +138,7 @@ function Dashboard() {
 
     return () => {
       events.forEach(event => window.removeEventListener(event, resetTimer));
-      if (inactivityTimeoutRef.current) {
-        clearTimeout(inactivityTimeoutRef.current);
-      }
+      if (inactivityTimeoutRef.current) clearTimeout(inactivityTimeoutRef.current);
     };
   };
 
@@ -151,6 +168,10 @@ function Dashboard() {
 
   const isBlocked = status === 'auto-paused' && !approved;
   const breakExceeded = breakTime >= 60;
+  const showStart = status === 'none' || status === 'ended';
+  const showBreak = status === 'running';
+  const showEnd = workedTime >= 10800;
+  const showApprovalBtn = showModal;
 
   return (
     <div className="dashboard-wrapper">
@@ -180,17 +201,43 @@ function Dashboard() {
         </div>
       </div>
 
-      <div className="button-group d-flex flex-wrap gap-2 mb-4">
-        <button className="btn btn-success" onClick={() => handleAction('start')} disabled={isBlocked}>Start</button>
-        <button className="btn btn-warning" onClick={() => handleAction('pause', { break: 5 })} disabled={breakExceeded || isBlocked}>Take a Break</button>
-        <button className="btn btn-danger" onClick={() => handleAction('end')} disabled={isBlocked}>End Day</button>
-        <button className="btn btn-info" onClick={requestApproval}>Ask for Approval</button>
-      </div>
+    <div className="button-group d-flex flex-wrap gap-2 mb-4">
+  {showStart && !onBreak && (
+    <button className="btn btn-success" onClick={() => handleAction('start')} disabled={isBlocked}>
+      Start
+    </button>
+  )}
+
+  {showBreak && !onBreak && (
+    <button className="btn btn-warning" onClick={() => handleAction('pause')} disabled={breakExceeded || isBlocked}>
+      Take a Break
+    </button>
+  )}
+
+  {onBreak && (
+    <button className="btn btn-primary" onClick={() => handleAction('start')} disabled={isBlocked}>
+      Resume to Work
+    </button>
+  )}
+
+  {showEnd && !showStart && !onBreak && (
+    <button className="btn btn-danger" onClick={() => handleAction('end')} disabled={isBlocked}>
+      End Day
+    </button>
+  )}
+
+  {showApprovalBtn && (
+    <button className="btn btn-info" onClick={requestApproval}>
+      Ask for Approval
+    </button>
+  )}
+</div>
+
 
       {isBlocked && <p className="text-danger mb-3">Timer paused due to inactivity. Waiting for admin approval.</p>}
       {approved && <p className="text-success mb-3">✅ Approved by admin. You may resume.</p>}
 
-      <h5 className="mb-3">📋 Assigned Tasks</h5>
+      <h5 className="mb-3">Assigned Tasks</h5>
       <div className="table-responsive">
         <table className="table table-hover table-bordered">
           <thead className="table-light">
@@ -208,22 +255,16 @@ function Dashboard() {
               <tr key={task._id}>
                 <td>{task.jobId}</td>
                 <td>{formatCountdown(task.deadline)}</td>
-                <td>
-                  {task.files?.map(file => (
-                    <div key={file}><a href={`/uploads/${file}`} target="_blank" rel="noreferrer">📎 {file}</a></div>
-                  ))}
-                </td>
+                <td>{task.files?.map(file => (
+                  <div key={file}><a href={`/uploads/${file}`} target="_blank" rel="noreferrer">📎 {file}</a></div>
+                ))}</td>
                 <td><a href={task.googleDocsLink} target="_blank" rel="noreferrer">View</a></td>
-                <td>
-                  {task.status !== 'submitted' && task.status !== 'rejected' ? (
-                    <button className="btn btn-sm btn-outline-success" onClick={() => submitTask(task._id)}>Submit</button>
-                  ) : '—'}
-                </td>
-                <td>
-                  {task.status !== 'submitted' && task.status !== 'rejected' ? (
-                    <button className="btn btn-sm btn-outline-danger" onClick={() => rejectTask(task._id)}>Reject</button>
-                  ) : (task.reason || '—')}
-                </td>
+                <td>{task.status !== 'submitted' && task.status !== 'rejected' ? (
+                  <button className="btn btn-sm btn-outline-success" onClick={() => submitTask(task._id)}>Submit</button>
+                ) : '—'}</td>
+                <td>{task.status !== 'submitted' && task.status !== 'rejected' ? (
+                  <button className="btn btn-sm btn-outline-danger" onClick={() => rejectTask(task._id)}>Reject</button>
+                ) : (task.reason || '—')}</td>
               </tr>
             ))}
           </tbody>

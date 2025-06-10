@@ -26,7 +26,7 @@ function AdminPanel() {
   const [visibleSections, setVisibleSections] = useState({
     addUser: false,
     assignTask: false,
-    approvals: false,
+    approvals: true,
     userList: true
   });
 
@@ -194,7 +194,7 @@ function AdminPanel() {
 
   return (
     <div className="d-flex">
-     
+     {/* The main module is been set to the main frame of the hierkey  */}
       {/* Sidebar */}
       <div className="sidebar">
         <h4 className="mb-4">Admin</h4>
@@ -211,14 +211,14 @@ function AdminPanel() {
           <button className="btn btn-outline-danger w-100" onClick={handleLogout}>Logout</button>
         </div>
       </div>
-     
+     {/* the main module is been set to the main frame of the total hierkey  */}
 
       {/* Main Content */}
       <div className="container mt-4">
           <h2 className="text-center mb-4 fw-bold">Infizest Admin Panel</h2>
         {visibleSections.addUser && (
           <div className="card p-3 mb-4 shadow-sm">
-            <h5 className="text-primary">➕ Add New User</h5>
+            <h5 className="text-primary">Add New User</h5>
             <form onSubmit={addUser}>
               {['name', 'email', 'loginId', 'password'].map((field) => (
                 <input
@@ -260,39 +260,39 @@ function AdminPanel() {
           <button className="btn btn-outline-secondary ms-2" onClick={exportCSV}>Export CSV</button>
         </div>
 
-        {/* Task Table */}
-        <table className="table table-bordered table-hover">
-          <thead>
-            <tr>
-              <th>Job ID</th>
-              <th>Employee</th>
-              <th>Deadline</th>
-              <th>Google Docs</th>
-              <th>Status</th>
-              <th>Update</th>
-            </tr>
-          </thead>
-          <tbody>
-            {currentTasks.map(task => (
-              <tr key={task._id}>
-                <td>{task.jobId}</td>
-                <td>{task.assignedTo?.name}</td>
-                <td>{new Date(task.deadline).toLocaleString()}</td>
-                <td><a href={task.googleDocsLink} target="_blank" rel="noreferrer">View</a></td>
-                <td>{task.status}</td>
-                <td>
-                  <select className="form-select" value={task.status} onChange={e => updateStatus(task._id, e.target.value)}>
-                    <option value="pending">Pending</option>
-                    <option value="working">Working</option>
-                    <option value="submitted">Submitted</option>
-                    <option value="done">Done</option>
-                    <option value="rejected">Rejected</option>
-                  </select>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+      {/* Task Table */}
+<table className="table table-bordered table-hover">
+  <thead>
+    <tr>
+      <th>Job ID</th>
+      <th>Employee</th>
+      <th>Deadline</th>
+      <th>Google Docs</th>
+      <th>Status</th>
+    </tr>
+  </thead>
+  <tbody>
+    {currentTasks.map(task => (
+      <tr key={task._id}>
+        <td>{task.jobId}</td>
+        <td>{task.assignedTo?.name}</td>
+        <td>{new Date(task.deadline).toLocaleString()}</td>
+        <td><a href={task.googleDocsLink} target="_blank" rel="noreferrer">View</a></td>
+        <td>
+          <span className={`badge ${
+            task.status === 'pending' ? 'bg-warning text-dark' :
+            task.status === 'working' ? 'bg-info' :
+            task.status === 'submitted' ? 'bg-primary' :
+            task.status === 'done' ? 'bg-success' :
+            task.status === 'rejected' ? 'bg-danger' : 'bg-secondary'
+          }`}>
+            {task.status}
+          </span>
+        </td>
+      </tr>
+    ))}
+  </tbody>
+</table>
 
         {visibleSections.approvals && (
           <>
@@ -360,7 +360,7 @@ function AdminPanel() {
             </button>
           ))}
         </div>
-          <footer className="text-center mt-5 mb-3 text-muted">
+          <footer className="text-center mt-5 mb-3 ">
   © {new Date().getFullYear()} Infizest. All rights reserved.
 </footer>
       </div>
