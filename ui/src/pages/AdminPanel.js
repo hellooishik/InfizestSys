@@ -192,6 +192,7 @@ function AdminPanel() {
   const currentTasks = filteredTasks.slice(indexOfFirst, indexOfLast);
   const totalPages = Math.ceil(filteredTasks.length / itemsPerPage);
 
+  // The Main 
   return (
     <div className="d-flex">
      {/* The main module is been set to the main frame of the hierkey  */}
@@ -264,7 +265,7 @@ function AdminPanel() {
 <table className="table table-bordered table-hover">
   <thead>
     <tr>
-      <th>Job ID</th>
+      <th>Job ID</th> 
       <th>Employee</th>
       <th>Deadline</th>
       <th>Google Docs</th>

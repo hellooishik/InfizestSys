@@ -60,7 +60,7 @@ const handleAction = async (actionStatus) => {
     const breakDuration = Math.ceil((now - breakStartRef.current) / 60000); // in minutes
     extra.break = breakDuration;
 
-    // 🔄 Immediately update the UI with new break time
+    // Immediately update the UI with new break time 
     setBreakTime(prev => prev + breakDuration);
 
     breakStartRef.current = null;
@@ -70,7 +70,7 @@ const handleAction = async (actionStatus) => {
   await axios.post('/api/log', { status: actionStatus, ...extra }, { withCredentials: true });
 
   if (actionStatus === 'end') {
-    alert(`✅ Work Summary:\nWorked Time: ${formatTime(workedTime)}\nBreak Time: ${breakTime} min`);
+    alert(`  Work Summary:\nWorked Time: ${formatTime(workedTime)}\nBreak Time: ${breakTime} min`);
   }
 
   fetchSession(); // Sync with backend after update
@@ -232,10 +232,10 @@ const handleAction = async (actionStatus) => {
     </button>
   )}
 </div>
-
+{/* the main module will be set to the main frame of hierkey  */}
 
       {isBlocked && <p className="text-danger mb-3">Timer paused due to inactivity. Waiting for admin approval.</p>}
-      {approved && <p className="text-success mb-3">✅ Approved by admin. You may resume.</p>}
+      {approved && <p className="text-success mb-3">Approved by admin. You may resume.</p>}
 
       <h5 className="mb-3">Assigned Tasks</h5>
       <div className="table-responsive">
