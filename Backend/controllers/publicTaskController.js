@@ -1,6 +1,8 @@
 const PublicTask = require('../models/PublicTask');
 const TaskRequest = require('../models/TaskRequest');
+const Task = require('../models/Task');
 
+// ✅ 1. Create a new public task (Admin)
 exports.createPublicTask = async (req, res) => {
   try {
     const { taskId, topic, wordCount, estimatedQuote } = req.body;
@@ -8,6 +10,11 @@ exports.createPublicTask = async (req, res) => {
 
     if (!taskId || !topic || !wordCount || !estimatedQuote) {
       return res.status(400).json({ message: 'Missing required fields' });
+    }
+
+    const duplicate = await PublicTask.findOne({ taskId });
+    if (duplicate) {
+      return res.status(409).json({ message: 'Task ID already exists' });
     }
 
     const newTask = new PublicTask({
@@ -19,67 +26,95 @@ exports.createPublicTask = async (req, res) => {
     });
 
     await newTask.save();
-
     res.status(201).json({ message: '✅ Public Task Created Successfully', task: newTask });
+
   } catch (err) {
     console.error('❌ Error in createPublicTask:', err);
     res.status(500).json({ error: 'Failed to create task', details: err.message });
   }
 };
 
-
+// ✅ 2. Get all public tasks (Visible on homepage)
 exports.getAllPublicTasks = async (req, res) => {
   try {
-    const tasks = await PublicTask.find();
+    const tasks = await PublicTask.find().sort({ createdAt: -1 });
     res.status(200).json(tasks);
   } catch (err) {
+    console.error('❌ Error in getAllPublicTasks:', err);
     res.status(500).json({ error: 'Failed to fetch tasks' });
   }
 };
 
+// ✅ 3. Request to do a task (User)
 exports.requestToDo = async (req, res) => {
   try {
     const { taskId } = req.body;
-    const userId = req.session.userId;
 
-    const alreadyRequested = await TaskRequest.findOne({ taskId, userId });
-    if (alreadyRequested) {
-      return res.status(400).json({ error: 'Already requested this task' });
+    if (!taskId) {
+      return res.status(400).json({ message: 'Task ID is required' });
     }
 
-    const request = new TaskRequest({ taskId, userId });
-    await request.save();
+    // Find the actual PublicTask by `taskId` (string)
+    const task = await PublicTask.findOne({ taskId });
 
-    res.status(200).json({ message: 'Task request submitted', request });
+    if (!task) {
+      return res.status(404).json({ message: 'Task not found with ID: ' + taskId });
+    }
+
+    // Check if user already requested this task
+    const existing = await TaskRequest.findOne({ userId: req.user._id, taskId: task._id });
+    if (existing) {
+      return res.status(409).json({ message: 'You have already requested this task.' });
+    }
+
+    // Create new request
+    const newRequest = new TaskRequest({
+      userId: req.user._id,
+      taskId: task._id,
+      status: 'Pending',
+      requestedAt: new Date()
+    });
+
+    await newRequest.save();
+
+    res.status(201).json({ message: '✅ Task requested successfully', request: newRequest });
+
   } catch (err) {
-    res.status(500).json({ error: 'Failed to request task' });
+    console.error('❌ Error in requestToDo:', err);
+    res.status(500).json({ message: 'Internal Server Error', error: err.message });
   }
 };
 
-const Task = require('../models/Task'); // ⬅️ only if needed
-
+// ✅ 4. Approve task request and assign it (Admin)
 exports.approveTaskRequest = async (req, res) => {
   try {
     const { requestId } = req.body;
 
     const request = await TaskRequest.findById(requestId).populate('taskId');
-    if (!request) return res.status(404).json({ error: 'Request not found' });
+    if (!request) {
+      return res.status(404).json({ error: 'Task request not found' });
+    }
+
+    if (request.status === 'Approved') {
+      return res.status(400).json({ message: 'Already approved' });
+    }
 
     request.status = 'Approved';
     await request.save();
 
-    // Optional: If you want it to appear in Assigned Tasks table:
+    // Create official Task entry
     await Task.create({
       jobId: request.taskId.taskId,
-      deadline: new Date(Date.now() + 72 * 60 * 60 * 1000), // Example: 3-day deadline
+      deadline: new Date(Date.now() + 72 * 60 * 60 * 1000), // ⏳ 3 days
       googleDocsLink: '',
       assignedTo: request.userId,
       status: 'pending'
     });
 
-    res.status(200).json({ message: 'Task approved and assigned', request });
+    res.status(200).json({ message: '✅ Task approved and assigned', request });
+
   } catch (err) {
-    res.status(500).json({ error: 'Approval failed' });
+    console.error('❌ Error in approveTaskRequest:', err);
+    res.status(500).json({ error: 'Approval failed', details: err.message });
   }
 };
-

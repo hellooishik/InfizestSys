@@ -6,9 +6,7 @@ import Toastify from 'toastify-js';
 import 'toastify-js/src/toastify.css';
 import io from 'socket.io-client';
 import '../css/AdminPanel.css';
-
-// ... (your imports remain unchanged)
-import { Moon, Sun } from 'lucide-react'; // Optional: use react-icons if you prefer
+import { Moon, Sun } from 'lucide-react'; // Optional
 
 function AdminPanel() {
   const { user, setUser } = useContext(UserContext);
@@ -28,7 +26,9 @@ function AdminPanel() {
     assignTask: false,
     approvals: true,
     userList: true,
-     managePublicPosts: true // NEW
+    postPublicTask: false,
+    approvePublicRequests: false,
+    managePublicPosts: true
   });
 
   const itemsPerPage = 10;
@@ -45,7 +45,6 @@ function AdminPanel() {
     });
     return () => socket.disconnect();
   }, []);
-
 
   useEffect(() => {
     document.body.classList.toggle('dark-mode', darkMode);
@@ -96,7 +95,7 @@ function AdminPanel() {
     a.href = window.URL.createObjectURL(blob);
     a.download = 'tasks.csv';
     a.click();
-  }; 
+  };
 
   const assignTask = async (e) => {
     e.preventDefault();
@@ -105,46 +104,137 @@ function AdminPanel() {
       if (key === 'files') [...val].forEach(f => formData.append('files', f));
       else formData.append(key, val);
     });
-  try {
-  await axios.post('/api/tasks', formData, {
-    withCredentials: true,
-    headers: { 'Content-Type': 'multipart/form-data' }
-  });
-  Toastify({
-    text: `Task "${taskForm.jobId}" assigned to "${taskForm.loginId}"`,
-    backgroundColor: 'linear-gradient(to right, #007991, #78ffd6)',
-    duration: 3000
-  }).showToast();
-  setTaskForm({ jobId: '', loginId: '', deadline: '', googleDocsLink: '', files: [] });
-  loadTasks();
-} catch (error) {
-  Toastify({
-    text: `Failed to assign task: ${error.response?.data?.message || error.message}`,
-    backgroundColor: 'linear-gradient(to right, #ff416c, #ff4b2b)',
-    duration: 4000
-  }).showToast();
-}
+    try {
+      await axios.post('/api/tasks', formData, {
+        withCredentials: true,
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+      Toastify({
+        text: `Task "${taskForm.jobId}" assigned to "${taskForm.loginId}"`,
+        backgroundColor: 'linear-gradient(to right, #007991, #78ffd6)',
+        duration: 3000
+      }).showToast();
+      setTaskForm({ jobId: '', loginId: '', deadline: '', googleDocsLink: '', files: [] });
+      loadTasks();
+    } catch (error) {
+      Toastify({
+        text: `Failed to assign task: ${error.response?.data?.message || error.message}`,
+        backgroundColor: 'linear-gradient(to right, #ff416c, #ff4b2b)',
+        duration: 4000
+      }).showToast();
+    }
   };
-
   const addUser = async (e) => {
     e.preventDefault();
     try {
-  await axios.post('/api/admin/users', newUser, { withCredentials: true });
-  Toastify({
-    text: `User "${newUser.name}" added successfully!`,
-    backgroundColor: 'linear-gradient(to right, #00b09b, #96c93d)',
-    duration: 3000
-  }).showToast();
-  setNewUser({ name: '', email: '', loginId: '', password: '' });
-  loadUsers();
-} catch (error) {
-  Toastify({
-    text: `Failed to add user: ${error.response?.data?.message || error.message}`,
-    backgroundColor: 'linear-gradient(to right, #ff416c, #ff4b2b)',
-    duration: 4000
-  }).showToast();
-}
+      await axios.post('/api/admin/users', newUser, { withCredentials: true });
+      Toastify({
+        text: `User "${newUser.name}" added successfully!`,
+        backgroundColor: 'linear-gradient(to right, #00b09b, #96c93d)',
+        duration: 3000
+      }).showToast();
+      setNewUser({ name: '', email: '', loginId: '', password: '' });
+      loadUsers();
+    } catch (error) {
+      Toastify({
+        text: `Failed to add user: ${error.response?.data?.message || error.message}`,
+        backgroundColor: 'linear-gradient(to right, #ff416c, #ff4b2b)',
+        duration: 4000
+      }).showToast();
+    }
+  };
 
+  const [publicRequests, setPublicRequests] = useState([]);
+  const [publicTasks, setPublicTasks] = useState([]);
+  const [publicTaskForm, setPublicTaskForm] = useState({
+    taskId: '',
+    topic: '',
+    wordCount: '',
+    estimatedQuote: '',
+    document: null
+  });
+  const [editingTaskId, setEditingTaskId] = useState(null);
+  const [editedPublicTask, setEditedPublicTask] = useState({ topic: '', wordCount: '', estimatedQuote: '' });
+
+const loadPublicTasks = async () => {
+  try {
+    const res = await axios.get('/api/tasks/public', { withCredentials: true });
+    console.log("✅ Public Tasks Fetched:", res.data);
+    setPublicTasks(res.data);
+  } catch (err) {
+    console.error('❌ Failed to load public tasks:', err);
+  }
+};
+
+const loadPublicRequests = async () => {
+  try {
+    const res = await axios.get('/api/admin/public-requests', { withCredentials: true });
+    console.log("✅ Public Requests Fetched:", res.data);
+    setPublicRequests(res.data);
+  } catch (err) {
+    console.error('❌ Failed to fetch public requests:', err);
+  }
+};
+
+
+  const handleEditPublicTask = (task) => {
+    setEditingTaskId(task._id);
+    setEditedPublicTask({
+      topic: task.topic,
+      wordCount: task.wordCount,
+      estimatedQuote: task.estimatedQuote
+    });
+  };
+
+  const saveEditedPublicTask = async () => {
+    try {
+      await axios.put(`/api/admin/public-tasks/${editingTaskId}`, editedPublicTask, { withCredentials: true });
+      Toastify({ text: '✅ Task updated!', backgroundColor: 'green' }).showToast();
+      setEditingTaskId(null);
+      loadPublicTasks();
+    } catch (err) {
+      Toastify({ text: '❌ Update failed', backgroundColor: 'red' }).showToast();
+    }
+  };
+
+  const deletePublicTask = async (taskId) => {
+    try {
+      await axios.delete(`/api/admin/public-tasks/${taskId}`, { withCredentials: true });
+      Toastify({ text: '🗑️ Task deleted!', backgroundColor: 'red' }).showToast();
+      loadPublicTasks();
+    } catch (err) {
+      Toastify({ text: '❌ Delete failed', backgroundColor: 'orange' }).showToast();
+    }
+  };
+
+  const handlePostPublicTask = async (e) => {
+    e.preventDefault();
+    const formData = new FormData();
+    formData.append('taskId', publicTaskForm.taskId);
+    formData.append('topic', publicTaskForm.topic);
+    formData.append('wordCount', publicTaskForm.wordCount);
+    formData.append('estimatedQuote', publicTaskForm.estimatedQuote);
+    formData.append('document', publicTaskForm.document);
+
+    try {
+      await axios.post('/api/admin/public-task', formData, {
+        withCredentials: true,
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+      Toastify({
+        text: '✅ Public Task posted successfully!',
+        backgroundColor: 'green',
+        duration: 3000
+      }).showToast();
+      setPublicTaskForm({ taskId: '', topic: '', wordCount: '', estimatedQuote: '', document: null });
+      loadPublicTasks();
+    } catch (err) {
+      Toastify({
+        text: `❌ Failed to post: ${err.response?.data?.message || err.message}`,
+        backgroundColor: 'red',
+        duration: 4000
+      }).showToast();
+    }
   };
 
   const updateApproval = async (userId, action) => {
@@ -155,6 +245,24 @@ function AdminPanel() {
       duration: 3000
     }).showToast();
     loadLogs();
+  };
+
+  const updatePublicRequest = async (id, action) => {
+    try {
+      await axios.put(`/api/public-tasks/requests/${id}`, { action }, { withCredentials: true });
+      Toastify({
+        text: `Public task ${action}d successfully!`,
+        backgroundColor: action === 'approve' ? 'green' : 'red',
+        duration: 3000
+      }).showToast();
+      loadPublicRequests();
+    } catch (error) {
+      Toastify({
+        text: `Error: ${error.message}`,
+        backgroundColor: 'orange',
+        duration: 3000
+      }).showToast();
+    }
   };
 
   const ChangePassword = ({ userId }) => {
@@ -181,163 +289,20 @@ function AdminPanel() {
     return log.status === 'running' ? 'Online' : 'Offline';
   };
 
+  useEffect(() => {
+    if (!user) return;
+    if (!user.isAdmin) return navigate('/dashboard');
+    loadUsers();
+    loadTasks();
+    loadLogs();
+    loadPublicTasks();
+    loadPublicRequests();
+  }, [user]);
+
   const indexOfLast = currentPage * itemsPerPage;
   const indexOfFirst = indexOfLast - itemsPerPage;
   const currentTasks = filteredTasks.slice(indexOfFirst, indexOfLast);
   const totalPages = Math.ceil(filteredTasks.length / itemsPerPage);
-  const [publicTaskForm, setPublicTaskForm] = useState({
-  taskId: '',
-  topic: '',
-  wordCount: '',
-  estimatedQuote: '',
-  document: null
-});
-const [publicTasks, setPublicTasks] = useState([]);
-const [editingTaskId, setEditingTaskId] = useState(null);
-const [editedPublicTask, setEditedPublicTask] = useState({ topic: '', wordCount: '', estimatedQuote: '' });
-const loadPublicTasks = async () => {
-  try {
-    const res = await axios.get('/api/admin/public-tasks', { withCredentials: true });
-    setPublicTasks(res.data);
-  } catch (err) {
-    console.error('Failed to load public tasks', err);
-  }
-};
-
-const handleEditPublicTask = (task) => {
-  setEditingTaskId(task._id);
-  setEditedPublicTask({
-    topic: task.topic,
-    wordCount: task.wordCount,
-    estimatedQuote: task.estimatedQuote
-  });
-};
-const fetchAllPublicTasks = async () => {
-  try {
-    const res = await axios.get('/api/admin/public-tasks', { withCredentials: true });
-    setPublicTasks(res.data);
-  } catch (err) {
-    console.error('Failed to fetch public tasks', err);
-  }
-};
-
-const saveEditedPublicTask = async () => {
-  try {
-    await axios.put(`/api/admin/public-tasks/${editingTaskId}`, editedPublicTask, { withCredentials: true });
-    Toastify({ text: '✅ Task updated!', backgroundColor: 'green' }).showToast();
-    setEditingTaskId(null);
-    loadPublicTasks();
-  } catch (err) {
-    Toastify({ text: '❌ Update failed', backgroundColor: 'red' }).showToast();
-  }
-};
-
-const deletePublicTask = async (taskId) => {
-  try {
-   await axios.delete(`/api/admin/public-tasks/${taskId}`, { withCredentials: true });
-    Toastify({ text: '🗑️ Task deleted!', backgroundColor: 'red' }).showToast();
-    loadPublicTasks();
-  } catch (err) {
-    Toastify({ text: '❌ Delete failed', backgroundColor: 'orange' }).showToast();
-  }
-};
-
-
-const loadPublicRequests = async () => {
-  try {
-    const res = await axios.get('/api/public-tasks/requests', { withCredentials: true });
-    setPublicRequests(res.data);
-  } catch (err) {
-    console.error('Failed to fetch public requests:', err);
-  }
-};
-
-const [publicRequests, setPublicRequests] = useState([]);
-const postPublicTask = async (e) => {
-  e.preventDefault();
-  const formData = new FormData();
-  Object.entries(publicTaskForm).forEach(([key, val]) => {
-    if (key === 'files') [...val].forEach(f => formData.append('files', f));
-    else formData.append(key, val);
-  });
-  try {
-    await axios.post('/api/public-tasks', formData, {
-      withCredentials: true,
-      headers: { 'Content-Type': 'multipart/form-data' }
-    });
-    Toastify({
-      text: '✅ Public Task posted successfully!',
-      backgroundColor: 'green',
-      duration: 3000
-    }).showToast();
-    setPublicTaskForm({ title: '', description: '', deadline: '', files: [] });
-  } catch (error) {
-    Toastify({
-      text: `❌ Failed to post: ${error.response?.data?.message || error.message}`,
-      backgroundColor: 'red',
-      duration: 4000
-    }).showToast();
-  }
-};
-useEffect(() => {
-  if (!user) return;
-  if (!user.isAdmin) return navigate('/dashboard');
-  loadUsers();
-  loadTasks();
-  loadLogs();
-  loadPublicTasks();         // ✅ keep this
-  loadPublicRequests();      // ✅ keep this
-  // remove fetchAllPublicTasks(); ❌ redundant
-}, [user]);
-
-
-const updatePublicRequest = async (id, action) => {
-  try {
-    await axios.put(`/api/public-tasks/requests/${id}`, { action }, { withCredentials: true });
-    Toastify({
-      text: `Public task ${action}d successfully!`,
-      backgroundColor: action === 'approve' ? 'green' : 'red',
-      duration: 3000
-    }).showToast();
-    loadPublicRequests();
-  } catch (error) {
-    Toastify({
-      text: `Error: ${error.message}`,
-      backgroundColor: 'orange',
-      duration: 3000
-    }).showToast();
-  }
-};
-const handlePostPublicTask = async (e) => {
-  e.preventDefault();
-  const formData = new FormData();
-  formData.append('taskId', publicTaskForm.taskId);
-  formData.append('topic', publicTaskForm.topic);
-  formData.append('wordCount', publicTaskForm.wordCount);
-  formData.append('estimatedQuote', publicTaskForm.estimatedQuote);
-  formData.append('document', publicTaskForm.document); // single file
-
-  try {
-    await axios.post('/api/admin/public-task', formData, {
-      withCredentials: true,
-      headers: { 'Content-Type': 'multipart/form-data' }
-    });
-    Toastify({
-      text: '✅ Public Task posted successfully!',
-      backgroundColor: 'green',
-      duration: 3000
-    }).showToast();
-    setPublicTaskForm({ taskId: '', topic: '', wordCount: '', estimatedQuote: '', document: null });
-  } catch (err) {
-    Toastify({
-      text: `❌ Failed to post: ${err.response?.data?.message || err.message}`,
-      backgroundColor: 'red',
-      duration: 4000
-    }).showToast();
-  }
-};
-
-
 
   // The Main 
   return (
@@ -662,5 +627,6 @@ const handlePostPublicTask = async (e) => {
     
   );
 }
+
 
 export default AdminPanel;

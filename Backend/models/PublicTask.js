@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 
 const publicTaskSchema = new mongoose.Schema({
-  taskId: { type: String, required: true },
+  taskId: { type: String, required: true, unique: true }, // Ensure unique for reference
   topic: { type: String, required: true },
   documentPath: { type: String },
   wordCount: { type: Number, required: true },
