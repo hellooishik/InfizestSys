@@ -70,6 +70,9 @@ router.get('/tasks/public', controller.getAllPublicTasks);
 
 // ✅ Logged-in user: Request to do a task
 router.post('/tasks/request', requireLogin, controller.requestToDo);
+router.put('/admin/public-tasks/:id', requireAdmin, controller.updatePublicTask);
+router.delete('/admin/public-tasks/:id', requireAdmin, controller.deletePublicTask);
+
 
 // ✅ Logged-in user: View own public task requests
 router.get('/user/my-public-requests', requireLogin, async (req, res) => {

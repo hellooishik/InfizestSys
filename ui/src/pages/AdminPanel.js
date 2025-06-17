@@ -69,7 +69,7 @@ function AdminPanel() {
   const toggleSection = (section) => {
     setVisibleSections(prev => ({ ...prev, [section]: !prev[section] }));
   };
-
+  // The main Functions of the admin panel
   const handleLogout = async () => {
     await axios.post('/api/auth/logout', {}, { withCredentials: true });
     setUser(null);
@@ -96,7 +96,6 @@ function AdminPanel() {
     a.download = 'tasks.csv';
     a.click();
   };
-
   const assignTask = async (e) => {
     e.preventDefault();
     const formData = new FormData();
@@ -246,24 +245,24 @@ const loadPublicRequests = async () => {
     }).showToast();
     loadLogs();
   };
+const updatePublicRequest = async (id, action) => {
+  try {
+    await axios.put(`/api/admin/public-requests/${id}`, { action }, { withCredentials: true });
+    Toastify({
+      text: `Public task ${action}d successfully!`,
+      backgroundColor: action === 'approve' ? 'green' : 'red',
+      duration: 3000
+    }).showToast();
+    loadPublicRequests();
+  } catch (error) {
+    Toastify({
+      text: `Error: ${error.response?.data?.message || error.message}`,
+      backgroundColor: 'orange',
+      duration: 3000
+    }).showToast();
+  }
+};
 
-  const updatePublicRequest = async (id, action) => {
-    try {
-      await axios.put(`/api/public-tasks/requests/${id}`, { action }, { withCredentials: true });
-      Toastify({
-        text: `Public task ${action}d successfully!`,
-        backgroundColor: action === 'approve' ? 'green' : 'red',
-        duration: 3000
-      }).showToast();
-      loadPublicRequests();
-    } catch (error) {
-      Toastify({
-        text: `Error: ${error.message}`,
-        backgroundColor: 'orange',
-        duration: 3000
-      }).showToast();
-    }
-  };
 
   const ChangePassword = ({ userId }) => {
     const [editing, setEditing] = useState(false);
@@ -447,47 +446,49 @@ const loadPublicRequests = async () => {
         </tr>
       </thead>
       <tbody>
-  {publicRequests.length === 0 ? (
-    <tr>
-      <td colSpan="7" className="text-center text-muted">No public task requests found</td>
-    </tr>
-  ) : (
-    publicRequests.map((req) => {
-      const task = req.taskId || {};
-      const user = req.userId || {};
+        {publicRequests.filter(req => req.status === 'Pending').length === 0 ? (
+          <tr>
+            <td colSpan="7" className="text-center text-muted">No pending public task requests</td>
+          </tr>
+        ) : (
+          publicRequests
+            .filter(req => req.status === 'Pending')
+            .map((req) => {
+              const task = req.taskId || {};
+              const user = req.userId || {};
 
-      return (
-        <tr key={req._id}>
-          <td>{user.name} ({user.loginId})</td>
-          <td>{task.topic || 'N/A'}</td>
-          <td>{task.wordCount || '—'} words</td>
-          <td>₹{task.estimatedQuote || 0}</td>
-          <td>
-            {task.documentPath ? (
-              <a
-                href={`/${task.documentPath}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="btn btn-sm btn-outline-info"
-              >
-                View
-              </a>
-            ) : '—'}
-          </td>
-          <td>{new Date(req.requestedAt).toLocaleString()}</td>
-          <td>
-            <button className="btn btn-sm btn-success me-2" onClick={() => updatePublicRequest(req._id, 'approve')}>
-              Approve
-            </button>
-            <button className="btn btn-sm btn-danger" onClick={() => updatePublicRequest(req._id, 'reject')}>
-              Reject
-            </button>
-          </td>
-        </tr>
-      );
-    })
-  )}
-</tbody>
+              return (
+                <tr key={req._id}>
+                  <td>{user.name} ({user.loginId})</td>
+                  <td>{task.topic || 'N/A'}</td>
+                  <td>{task.wordCount || '—'} words</td>
+                  <td>₹{task.estimatedQuote || 0}</td>
+                  <td>
+                    {task.documentPath ? (
+                      <a
+                        href={`/${task.documentPath}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="btn btn-sm btn-outline-info"
+                      >
+                        View
+                      </a>
+                    ) : '—'}
+                  </td>
+                  <td>{new Date(req.requestedAt).toLocaleString()}</td>
+                  <td>
+                    <button className="btn btn-sm btn-success me-2" onClick={() => updatePublicRequest(req._id, 'approve')}>
+                      Approve
+                    </button>
+                    <button className="btn btn-sm btn-danger" onClick={() => updatePublicRequest(req._id, 'reject')}>
+                      Reject
+                    </button>
+                  </td>
+                </tr>
+              );
+            })
+        )}
+      </tbody>
     </table>
   </>
 )}

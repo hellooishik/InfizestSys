@@ -118,3 +118,34 @@ exports.approveTaskRequest = async (req, res) => {
     res.status(500).json({ error: 'Approval failed', details: err.message });
   }
 };
+exports.updatePublicTask = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { topic, wordCount, estimatedQuote } = req.body;
+
+    const updated = await PublicTask.findByIdAndUpdate(id, {
+      topic,
+      wordCount,
+      estimatedQuote
+    }, { new: true });
+
+    if (!updated) return res.status(404).json({ message: 'Task not found' });
+
+    res.status(200).json({ message: 'Task updated', task: updated });
+  } catch (err) {
+    console.error('❌ Failed to update task:', err);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+};
+exports.deletePublicTask = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const deleted = await PublicTask.findByIdAndDelete(id);
+    if (!deleted) return res.status(404).json({ message: 'Task not found' });
+
+    res.status(200).json({ message: 'Task deleted successfully' });
+  } catch (err) {
+    console.error('❌ Delete error:', err);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+};
