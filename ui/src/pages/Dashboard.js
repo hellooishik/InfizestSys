@@ -17,11 +17,34 @@ function Dashboard() {
   const [startTime, setStartTime] = useState(null);
   const [onBreak, setOnBreak] = useState(false);
   const breakStartRef = useRef(null);
+  const [publicRequests, setPublicRequests] = useState([]);
 
   const inactivityTimeoutRef = useRef(null);
   const statusRef = useRef(status);
 
   useEffect(() => { statusRef.current = status; }, [status]);
+  const fetchPublicRequests = async () => {
+  try {
+    const res = await axios.get('/api/user/my-public-requests', { withCredentials: true });
+    setPublicRequests(res.data);
+  } catch (err) {
+    console.error('Failed to fetch public task requests', err);
+  }
+};
+useEffect(() => {
+  if (!user) return navigate('/');
+  fetchSession();
+  fetchTasks();
+  fetchPublicRequests(); // 👈 Important for requests to show
+  const interval = setInterval(fetchSession, 10000);
+  const cleanup = startInactivityMonitor();
+  return () => {
+    clearInterval(interval);
+    cleanup();
+  };
+}, [user]);
+
+
 
   const fetchSession = async () => {
     try {
@@ -270,6 +293,53 @@ const handleAction = async (actionStatus) => {
           </tbody>
         </table>
       </div>
+<h5 className="mt-5 mb-3">Public Task Requests</h5>
+<div className="table-responsive">
+  <table className="table table-bordered table-striped">
+    <thead className="table-light">
+      <tr>
+        <th>Task ID</th>
+        <th>Topic</th>
+        <th>Word Count</th>
+        <th>Quote (₹)</th>
+        <th>Document</th>
+        <th>Status</th>
+      </tr>
+    </thead>
+    <tbody>
+      {publicRequests.length === 0 ? (
+        <tr>
+          <td colSpan="6" className="text-muted text-center">No public requests yet.</td>
+        </tr>
+      ) : (
+        publicRequests.map(req => (
+          <tr key={req._id}>
+            <td>{req.task?.taskId || '—'}</td>
+            <td>{req.task?.topic || '—'}</td>
+            <td>{req.task?.wordCount || 0}</td>
+            <td>₹{req.task?.estimatedQuote || 0}</td>
+            <td>
+              {req.task?.documentPath ? (
+                <a href={`/${req.task.documentPath}`} target="_blank" rel="noreferrer">📄 View</a>
+              ) : '—'}
+            </td>
+            <td>
+              <span className={`badge ${
+                req.status === 'Pending' ? 'bg-warning text-dark' :
+                req.status === 'Approved' ? 'bg-success' :
+                req.status === 'Rejected' ? 'bg-danger' :
+                'bg-secondary'
+              }`}>
+                {req.status}
+              </span>
+            </td>
+          </tr>
+        ))
+      )}
+    </tbody>
+  </table>
+</div>
+
 
       {showModal && (
         <div className="modal-backdrop">

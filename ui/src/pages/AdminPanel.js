@@ -191,27 +191,121 @@ function AdminPanel() {
   const indexOfFirst = indexOfLast - itemsPerPage;
   const currentTasks = filteredTasks.slice(indexOfFirst, indexOfLast);
   const totalPages = Math.ceil(filteredTasks.length / itemsPerPage);
+  const [publicTaskForm, setPublicTaskForm] = useState({
+  taskId: '',
+  topic: '',
+  wordCount: '',
+  estimatedQuote: '',
+  document: null
+});
+const loadPublicRequests = async () => {
+  try {
+    const res = await axios.get('/api/public-tasks/requests', { withCredentials: true });
+    setPublicRequests(res.data);
+  } catch (err) {
+    console.error('Failed to fetch public requests:', err);
+  }
+};
+loadPublicRequests();
+const [publicRequests, setPublicRequests] = useState([]);
+const postPublicTask = async (e) => {
+  e.preventDefault();
+  const formData = new FormData();
+  Object.entries(publicTaskForm).forEach(([key, val]) => {
+    if (key === 'files') [...val].forEach(f => formData.append('files', f));
+    else formData.append(key, val);
+  });
+  try {
+    await axios.post('/api/public-tasks', formData, {
+      withCredentials: true,
+      headers: { 'Content-Type': 'multipart/form-data' }
+    });
+    Toastify({
+      text: '✅ Public Task posted successfully!',
+      backgroundColor: 'green',
+      duration: 3000
+    }).showToast();
+    setPublicTaskForm({ title: '', description: '', deadline: '', files: [] });
+  } catch (error) {
+    Toastify({
+      text: `❌ Failed to post: ${error.response?.data?.message || error.message}`,
+      backgroundColor: 'red',
+      duration: 4000
+    }).showToast();
+  }
+};
+const updatePublicRequest = async (id, action) => {
+  try {
+    await axios.put(`/api/public-tasks/requests/${id}`, { action }, { withCredentials: true });
+    Toastify({
+      text: `Public task ${action}d successfully!`,
+      backgroundColor: action === 'approve' ? 'green' : 'red',
+      duration: 3000
+    }).showToast();
+    loadPublicRequests();
+  } catch (error) {
+    Toastify({
+      text: `Error: ${error.message}`,
+      backgroundColor: 'orange',
+      duration: 3000
+    }).showToast();
+  }
+};
+const handlePostPublicTask = async (e) => {
+  e.preventDefault();
+  const formData = new FormData();
+  formData.append('taskId', publicTaskForm.taskId);
+  formData.append('topic', publicTaskForm.topic);
+  formData.append('wordCount', publicTaskForm.wordCount);
+  formData.append('estimatedQuote', publicTaskForm.estimatedQuote);
+  formData.append('document', publicTaskForm.document); // single file
+
+  try {
+    await axios.post('/api/admin/public-task', formData, {
+      withCredentials: true,
+      headers: { 'Content-Type': 'multipart/form-data' }
+    });
+    Toastify({
+      text: '✅ Public Task posted successfully!',
+      backgroundColor: 'green',
+      duration: 3000
+    }).showToast();
+    setPublicTaskForm({ taskId: '', topic: '', wordCount: '', estimatedQuote: '', document: null });
+  } catch (err) {
+    Toastify({
+      text: `❌ Failed to post: ${err.response?.data?.message || err.message}`,
+      backgroundColor: 'red',
+      duration: 4000
+    }).showToast();
+  }
+};
+
+
 
   // The Main 
   return (
     <div className="d-flex">
      {/* The main module is been set to the main frame of the hierkey  */}
       {/* Sidebar */}
-      <div className="sidebar">
-        <h4 className="mb-4">Admin</h4>
-        <div className="toggle-btn" onClick={() => toggleSection('addUser')}>Add New User</div>
-        <div className="toggle-btn" onClick={() => toggleSection('assignTask')}>Assign Task</div>
-        <div className="toggle-btn" onClick={() => toggleSection('approvals')}>Approval Requests</div>
-        <div className="toggle-btn" onClick={() => toggleSection('userList')}>User List</div>
-        <div className="mt-4">
-          <button className="btn btn-outline-secondary w-100" onClick={() => setDarkMode(!darkMode)}>
-            {darkMode ? 'Light Mode' : 'Dark Mode'}
-          </button>
-        </div>
-        <div className="mt-3">
-          <button className="btn btn-outline-danger w-100" onClick={handleLogout}>Logout</button>
-        </div>
-      </div>
+<div className="sidebar">
+  <h4 className="mb-4">Admin</h4>
+  <div className="toggle-btn" onClick={() => toggleSection('addUser')}>Add New User</div>
+  <div className="toggle-btn" onClick={() => toggleSection('assignTask')}>Assign Task</div>
+  <div className="toggle-btn" onClick={() => toggleSection('approvals')}>Approval Requests</div>
+  <div className="toggle-btn" onClick={() => toggleSection('userList')}>User List</div>
+  <div className="toggle-btn" onClick={() => toggleSection('postPublicTask')}>Post Public Task</div>
+  <div className="toggle-btn" onClick={() => toggleSection('approvePublicRequests')}>Public Task Requests</div>
+
+  <div className="mt-4">
+    <button className="btn btn-outline-secondary w-100" onClick={() => setDarkMode(!darkMode)}>
+      {darkMode ? 'Light Mode' : 'Dark Mode'}
+    </button>
+  </div>
+  <div className="mt-3">
+    <button className="btn btn-outline-danger w-100" onClick={handleLogout}>Logout</button>
+  </div>
+</div>
+
      {/* the main module is been set to the main frame of the total hierkey  */}
 
       {/* Main Content */}
@@ -235,6 +329,111 @@ function AdminPanel() {
             </form>
           </div>
         )}
+{visibleSections.postPublicTask && (
+  <div className="card p-3 mb-4 shadow-sm">
+    <h5 className="text-info">Post Public Task</h5>
+    <form onSubmit={handlePostPublicTask}>
+      <input
+        className="form-control mb-2"
+        placeholder="Task ID"
+        value={publicTaskForm.taskId}
+        onChange={e => setPublicTaskForm({ ...publicTaskForm, taskId: e.target.value })}
+        required
+      />
+      <input
+        className="form-control mb-2"
+        placeholder="Topic"
+        value={publicTaskForm.topic}
+        onChange={e => setPublicTaskForm({ ...publicTaskForm, topic: e.target.value })}
+        required
+      />
+      <input
+        className="form-control mb-2"
+        type="number"
+        placeholder="Word Count"
+        value={publicTaskForm.wordCount}
+        onChange={e => setPublicTaskForm({ ...publicTaskForm, wordCount: e.target.value })}
+        required
+      />
+      <input
+        className="form-control mb-2"
+        type="number"
+        placeholder="Estimated Quote (₹)"
+        value={publicTaskForm.estimatedQuote}
+        onChange={e => setPublicTaskForm({ ...publicTaskForm, estimatedQuote: e.target.value })}
+        required
+      />
+      <input
+        type="file"
+        className="form-control mb-3"
+        onChange={e => setPublicTaskForm({ ...publicTaskForm, document: e.target.files[0] })}
+        required
+      />
+      <button className="btn btn-info w-100">Post Task</button>
+    </form>
+  </div>
+)}
+
+{visibleSections.approvePublicRequests && (
+  <>
+    <h5 className="mt-5 text-danger">Public Task Requests</h5>
+    <table className="table table-bordered">
+      <thead className="table-light">
+        <tr>
+          <th>User</th>
+          <th>Topic</th>
+          <th>Word Count</th>
+          <th>Estimated Quote (₹)</th>
+          <th>Document</th>
+          <th>Requested</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+  {publicRequests.length === 0 ? (
+    <tr>
+      <td colSpan="7" className="text-center text-muted">No public task requests found</td>
+    </tr>
+  ) : (
+    publicRequests.map((req) => {
+      const task = req.taskId || {};
+      const user = req.userId || {};
+
+      return (
+        <tr key={req._id}>
+          <td>{user.name} ({user.loginId})</td>
+          <td>{task.topic || 'N/A'}</td>
+          <td>{task.wordCount || '—'} words</td>
+          <td>₹{task.estimatedQuote || 0}</td>
+          <td>
+            {task.documentPath ? (
+              <a
+                href={`/${task.documentPath}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="btn btn-sm btn-outline-info"
+              >
+                View
+              </a>
+            ) : '—'}
+          </td>
+          <td>{new Date(req.requestedAt).toLocaleString()}</td>
+          <td>
+            <button className="btn btn-sm btn-success me-2" onClick={() => updatePublicRequest(req._id, 'approve')}>
+              Approve
+            </button>
+            <button className="btn btn-sm btn-danger" onClick={() => updatePublicRequest(req._id, 'reject')}>
+              Reject
+            </button>
+          </td>
+        </tr>
+      );
+    })
+  )}
+</tbody>
+    </table>
+  </>
+)}
 
         {visibleSections.assignTask && (
           <div className="card p-3 mb-4 shadow-sm">

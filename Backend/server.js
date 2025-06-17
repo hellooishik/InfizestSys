@@ -4,6 +4,8 @@ const mongoose = require('mongoose');
 const { Server } = require('socket.io');
 const app = require('./app'); // Your Express app with routes & middleware
 require('dotenv').config();
+const publicTaskRoutes = require('./routes/publicTaskRoutes');
+app.use('/api', publicTaskRoutes);
 
 const PORT = process.env.PORT || 5000;
 
