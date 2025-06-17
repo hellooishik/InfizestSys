@@ -27,7 +27,8 @@ function AdminPanel() {
     addUser: false,
     assignTask: false,
     approvals: true,
-    userList: true
+    userList: true,
+     managePublicPosts: true // NEW
   });
 
   const itemsPerPage = 10;
@@ -45,13 +46,6 @@ function AdminPanel() {
     return () => socket.disconnect();
   }, []);
 
-  useEffect(() => {
-    if (!user) return;
-    if (!user.isAdmin) return navigate('/dashboard');
-    loadUsers();
-    loadTasks();
-    loadLogs();
-  }, [user]);
 
   useEffect(() => {
     document.body.classList.toggle('dark-mode', darkMode);
@@ -198,6 +192,57 @@ function AdminPanel() {
   estimatedQuote: '',
   document: null
 });
+const [publicTasks, setPublicTasks] = useState([]);
+const [editingTaskId, setEditingTaskId] = useState(null);
+const [editedPublicTask, setEditedPublicTask] = useState({ topic: '', wordCount: '', estimatedQuote: '' });
+const loadPublicTasks = async () => {
+  try {
+    const res = await axios.get('/api/admin/public-tasks', { withCredentials: true });
+    setPublicTasks(res.data);
+  } catch (err) {
+    console.error('Failed to load public tasks', err);
+  }
+};
+
+const handleEditPublicTask = (task) => {
+  setEditingTaskId(task._id);
+  setEditedPublicTask({
+    topic: task.topic,
+    wordCount: task.wordCount,
+    estimatedQuote: task.estimatedQuote
+  });
+};
+const fetchAllPublicTasks = async () => {
+  try {
+    const res = await axios.get('/api/admin/public-tasks', { withCredentials: true });
+    setPublicTasks(res.data);
+  } catch (err) {
+    console.error('Failed to fetch public tasks', err);
+  }
+};
+
+const saveEditedPublicTask = async () => {
+  try {
+    await axios.put(`/api/admin/public-tasks/${editingTaskId}`, editedPublicTask, { withCredentials: true });
+    Toastify({ text: '✅ Task updated!', backgroundColor: 'green' }).showToast();
+    setEditingTaskId(null);
+    loadPublicTasks();
+  } catch (err) {
+    Toastify({ text: '❌ Update failed', backgroundColor: 'red' }).showToast();
+  }
+};
+
+const deletePublicTask = async (taskId) => {
+  try {
+   await axios.delete(`/api/admin/public-tasks/${taskId}`, { withCredentials: true });
+    Toastify({ text: '🗑️ Task deleted!', backgroundColor: 'red' }).showToast();
+    loadPublicTasks();
+  } catch (err) {
+    Toastify({ text: '❌ Delete failed', backgroundColor: 'orange' }).showToast();
+  }
+};
+
+
 const loadPublicRequests = async () => {
   try {
     const res = await axios.get('/api/public-tasks/requests', { withCredentials: true });
@@ -206,7 +251,7 @@ const loadPublicRequests = async () => {
     console.error('Failed to fetch public requests:', err);
   }
 };
-loadPublicRequests();
+
 const [publicRequests, setPublicRequests] = useState([]);
 const postPublicTask = async (e) => {
   e.preventDefault();
@@ -234,6 +279,18 @@ const postPublicTask = async (e) => {
     }).showToast();
   }
 };
+useEffect(() => {
+  if (!user) return;
+  if (!user.isAdmin) return navigate('/dashboard');
+  loadUsers();
+  loadTasks();
+  loadLogs();
+  loadPublicTasks();         // ✅ keep this
+  loadPublicRequests();      // ✅ keep this
+  // remove fetchAllPublicTasks(); ❌ redundant
+}, [user]);
+
+
 const updatePublicRequest = async (id, action) => {
   try {
     await axios.put(`/api/public-tasks/requests/${id}`, { action }, { withCredentials: true });
@@ -295,6 +352,8 @@ const handlePostPublicTask = async (e) => {
   <div className="toggle-btn" onClick={() => toggleSection('userList')}>User List</div>
   <div className="toggle-btn" onClick={() => toggleSection('postPublicTask')}>Post Public Task</div>
   <div className="toggle-btn" onClick={() => toggleSection('approvePublicRequests')}>Public Task Requests</div>
+  <div className="toggle-btn" onClick={() => toggleSection('managePublicPosts')}>Manage Public Posts</div>
+
 
   <div className="mt-4">
     <button className="btn btn-outline-secondary w-100" onClick={() => setDarkMode(!darkMode)}>
@@ -373,6 +432,39 @@ const handlePostPublicTask = async (e) => {
     </form>
   </div>
 )}
+{visibleSections.managePublicPosts && (
+  <div className="card p-3 mb-4 shadow-sm">
+    <h5 className="text-warning">Manage Public Posts</h5>
+    {publicTasks.length === 0 ? (
+      <p className="text-muted">No public tasks posted yet.</p>
+    ) : (
+      <table className="table table-bordered table-hover">
+        <thead className="table-dark">
+          <tr>
+            <th>Topic</th>
+            <th>Words</th>
+            <th>Quote (₹)</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {publicTasks.map((task) => (
+            <tr key={task._id}>
+              <td>{task.topic}</td>
+              <td>{task.wordCount}</td>
+              <td>{task.estimatedQuote}</td>
+              <td>
+                <button className="btn btn-outline-primary btn-sm me-2" onClick={() => handleEditPublicTask(task)}>Edit</button>
+                <button className="btn btn-outline-danger btn-sm" onClick={() => deletePublicTask(task._id)}>Delete</button>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    )}
+  </div>
+)}
+
 
 {visibleSections.approvePublicRequests && (
   <>
