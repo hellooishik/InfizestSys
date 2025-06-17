@@ -119,9 +119,14 @@ function HomePage() {
                 <p><strong>Quote:</strong> ₹{task.estimatedQuote}</p>
               </div>
               {task.documentPath && (
-                <a className="doc-link" href={`/${task.documentPath}`} target="_blank" rel="noopener noreferrer">
-                  View Document
-                </a>
+                <a
+  className="doc-link"
+  href={`http://localhost:5000/${task.documentPath}`}
+  target="_blank"
+  rel="noopener noreferrer"
+>
+  View Document
+</a>
               )}
               <button className="cta-button" onClick={() => openLoginModal(task.taskId)}>
                 Request to Do

@@ -18,6 +18,7 @@ function Dashboard() {
   const [onBreak, setOnBreak] = useState(false);
   const breakStartRef = useRef(null);
   const [publicRequests, setPublicRequests] = useState([]);
+  const SERVER_URL = 'http://localhost:5000'; // Move this to top if needed
 
   const inactivityTimeoutRef = useRef(null);
   const statusRef = useRef(status);
@@ -279,7 +280,7 @@ const handleAction = async (actionStatus) => {
                 <td>{task.jobId}</td>
                 <td>{formatCountdown(task.deadline)}</td>
                 <td>{task.files?.map(file => (
-                  <div key={file}><a href={`/uploads/${file}`} target="_blank" rel="noreferrer">📎 {file}</a></div>
+                  <div key={file}><a href={`${SERVER_URL}/uploads/${file}`} target="_blank" rel="noreferrer">📎 {file}</a></div>
                 ))}</td>
                 <td><a href={task.googleDocsLink} target="_blank" rel="noreferrer">View</a></td>
                 <td>{task.status !== 'submitted' && task.status !== 'rejected' ? (
@@ -320,7 +321,7 @@ const handleAction = async (actionStatus) => {
             <td>₹{req.task?.estimatedQuote || 0}</td>
             <td>
               {req.task?.documentPath ? (
-                <a href={`/${req.task.documentPath}`} target="_blank" rel="noreferrer">📄 View</a>
+                <a href={`${SERVER_URL}/${req.task.documentPath}`} target="_blank" rel="noreferrer">📄 View</a>
               ) : '—'}
             </td>
             <td>
