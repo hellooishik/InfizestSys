@@ -66,9 +66,6 @@ function AdminPanel() {
     setLogs(res.data);
   };
 
-  const toggleSection = (section) => {
-    setVisibleSections(prev => ({ ...prev, [section]: !prev[section] }));
-  };
   // The main Functions of the admin panel
   const handleLogout = async () => {
     await axios.post('/api/auth/logout', {}, { withCredentials: true });
@@ -163,6 +160,14 @@ const loadPublicTasks = async () => {
   } catch (err) {
     console.error('❌ Failed to load public tasks:', err);
   }
+};
+const [activeSection, setActiveSection] = useState('');
+const toggleSection = (section) => {
+  setVisibleSections(prev => ({
+    ...Object.fromEntries(Object.entries(prev).map(([key]) => [key, false])),
+    [section]: true
+  }));
+  setActiveSection(section);
 };
 
 const loadPublicRequests = async () => {
@@ -310,13 +315,54 @@ const updatePublicRequest = async (id, action) => {
       {/* Sidebar */}
 <div className="sidebar">
   <h4 className="mb-4">Admin</h4>
-  <div className="toggle-btn" onClick={() => toggleSection('addUser')}>Add New User</div>
-  <div className="toggle-btn" onClick={() => toggleSection('assignTask')}>Assign Task</div>
-  <div className="toggle-btn" onClick={() => toggleSection('approvals')}>Approval Requests</div>
-  <div className="toggle-btn" onClick={() => toggleSection('userList')}>User List</div>
-  <div className="toggle-btn" onClick={() => toggleSection('postPublicTask')}>Post Public Task</div>
-  <div className="toggle-btn" onClick={() => toggleSection('approvePublicRequests')}>Public Task Requests</div>
-  <div className="toggle-btn" onClick={() => toggleSection('managePublicPosts')}>Manage Public Posts</div>
+<div
+    className={`toggle-btn ${activeSection === 'addUser' ? 'active' : ''}`}
+    onClick={() => toggleSection('addUser')}
+  >
+    Add New User
+  </div>
+
+  <div
+    className={`toggle-btn ${activeSection === 'assignTask' ? 'active' : ''}`}
+    onClick={() => toggleSection('assignTask')}
+  >
+    Assign Task
+  </div>
+
+  <div
+    className={`toggle-btn ${activeSection === 'approvals' ? 'active' : ''}`}
+    onClick={() => toggleSection('approvals')}
+  >
+    Approval Requests
+  </div>
+
+  <div
+    className={`toggle-btn ${activeSection === 'userList' ? 'active' : ''}`}
+    onClick={() => toggleSection('userList')}
+  >
+    User List
+  </div>
+
+  <div
+    className={`toggle-btn ${activeSection === 'postPublicTask' ? 'active' : ''}`}
+    onClick={() => toggleSection('postPublicTask')}
+  >
+    Post Public Task
+  </div>
+
+  <div
+    className={`toggle-btn ${activeSection === 'approvePublicRequests' ? 'active' : ''}`}
+    onClick={() => toggleSection('approvePublicRequests')}
+  >
+    Public Task Requests
+  </div>
+
+  <div
+    className={`toggle-btn ${activeSection === 'managePublicPosts' ? 'active' : ''}`}
+    onClick={() => toggleSection('managePublicPosts')}
+  >
+    Manage Public Posts
+  </div>
 
 
   <div className="mt-4">
@@ -405,6 +451,7 @@ const updatePublicRequest = async (id, action) => {
       <table className="table table-bordered table-hover">
         <thead className="table-dark">
           <tr>
+            <th>Task ID</th>
             <th>Topic</th>
             <th>Words</th>
             <th>Quote (₹)</th>
@@ -414,12 +461,17 @@ const updatePublicRequest = async (id, action) => {
         <tbody>
           {publicTasks.map((task) => (
             <tr key={task._id}>
+              <td>{task.taskId}</td>
               <td>{task.topic}</td>
               <td>{task.wordCount}</td>
               <td>{task.estimatedQuote}</td>
               <td>
-                <button className="btn btn-outline-primary btn-sm me-2" onClick={() => handleEditPublicTask(task)}>Edit</button>
-                <button className="btn btn-outline-danger btn-sm" onClick={() => deletePublicTask(task._id)}>Delete</button>
+                <button className="btn btn-outline-primary btn-sm me-2" onClick={() => handleEditPublicTask(task)}>
+                  Edit
+                </button>
+                <button className="btn btn-outline-danger btn-sm" onClick={() => deletePublicTask(task._id)}>
+                  Delete
+                </button>
               </td>
             </tr>
           ))}
@@ -430,12 +482,14 @@ const updatePublicRequest = async (id, action) => {
 )}
 
 
+
 {visibleSections.approvePublicRequests && (
   <>
     <h5 className="mt-5 text-danger">Public Task Requests</h5>
     <table className="table table-bordered">
       <thead className="table-light">
         <tr>
+          <th>Task ID</th>
           <th>User</th>
           <th>Topic</th>
           <th>Word Count</th>
@@ -448,7 +502,7 @@ const updatePublicRequest = async (id, action) => {
       <tbody>
         {publicRequests.filter(req => req.status === 'Pending').length === 0 ? (
           <tr>
-            <td colSpan="7" className="text-center text-muted">No pending public task requests</td>
+            <td colSpan="8" className="text-center text-muted">No pending public task requests</td>
           </tr>
         ) : (
           publicRequests
@@ -459,6 +513,7 @@ const updatePublicRequest = async (id, action) => {
 
               return (
                 <tr key={req._id}>
+                  <td>{task.taskId || '—'}</td>
                   <td>{user.name} ({user.loginId})</td>
                   <td>{task.topic || 'N/A'}</td>
                   <td>{task.wordCount || '—'} words</td>
@@ -492,6 +547,7 @@ const updatePublicRequest = async (id, action) => {
     </table>
   </>
 )}
+
 
         {visibleSections.assignTask && (
           <div className="card p-3 mb-4 shadow-sm">

@@ -64,7 +64,16 @@ body.dark .table-bordered th,
 body.dark .table-bordered td {
   border-color: #444;
 }
-
+.toggle-btn.active {
+  background-color: #ffffff22;
+  color: #ffc107; /* yellow highlight text */
+  border-radius: 6px;
+  padding: 0.4rem 0.75rem;
+  transition: background 0.3s;
+}
+.toggle-btn.active:hover {
+  background-color: #ffffff33;
+}
 /* 🧭 Sidebar */
 .sidebar {
   position: fixed;
