@@ -9,15 +9,30 @@ require('dotenv').config();
 
 const app = express();
 
+// ✅ Fix: Allow both local and deployed frontend
+const allowedOrigins = [
+  'http://localhost:3000',
+  'https://infizestcrm.onrender.com'
+];
+
 app.use(cors({
-  origin: 'http://localhost:3000',
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl)
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true
 }));
 
 app.use(bodyParser.json());
+
 app.get('/', (req, res) => {
   res.send('✅ Welcome to Infizest Backend!');
 });
+
 // ✅ Serve uploads
 app.use('/uploads', express.static('uploads'));
 
@@ -28,7 +43,7 @@ app.use(session({
   store: MongoStore.create({ mongoUrl: process.env.MONGO_URI }),
   cookie: {
     httpOnly: true,
-    secure: false,
+    secure: false, // Consider true in production with HTTPS
     maxAge: 1000 * 60 * 60 * 24
   }
 }));
