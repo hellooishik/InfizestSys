@@ -7,12 +7,7 @@ const dotenv = require('dotenv');
 dotenv.config();
 
 const app = require('./app'); // Your Express app with routes & middleware
-const publicTaskRoutes = require('./routes/publicTaskRoutes');
-
 const PORT = process.env.PORT || 5000;
-
-// ⬇️ API Routes
-app.use('/api', publicTaskRoutes);
 
 // ⬇️ Serve React build in production
 if (process.env.NODE_ENV === 'production') {
@@ -34,7 +29,6 @@ const io = new Server(server, {
     credentials: true
   }
 });
-
 global._io = io;
 
 io.on('connection', (socket) => {
