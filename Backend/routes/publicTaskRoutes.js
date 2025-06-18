@@ -37,7 +37,12 @@ router.get('/admin/public-requests', requireAdmin, async (req, res) => {
   }
 });
 
-// ✅ Admin: Approve or reject a task request
+// 🛡️ Catch calls to /admin/public-requests/ without an :id param
+router.put('/admin/public-requests', (req, res) => {
+  return res.status(400).json({ message: 'Missing task request ID in URL' });
+});
+
+// ✅ Admin: Approve or reject a task request by ID
 router.put('/admin/public-requests/:id', requireAdmin, async (req, res) => {
   const { id } = req.params;
   const { action } = req.body;
@@ -67,18 +72,18 @@ router.put('/admin/public-requests/:id', requireAdmin, async (req, res) => {
 // ✅ Get all public tasks
 router.get('/tasks/public', controller.getAllPublicTasks);
 
-
 // ✅ Logged-in user: Request to do a task
 router.post('/tasks/request', requireLogin, controller.requestToDo);
+
+// ✅ Admin: Update or delete a public task by ID
 router.put('/admin/public-tasks/:id', requireAdmin, controller.updatePublicTask);
 router.delete('/admin/public-tasks/:id', requireAdmin, controller.deletePublicTask);
-
 
 // ✅ Logged-in user: View own public task requests
 router.get('/user/my-public-requests', requireLogin, async (req, res) => {
   try {
     const requests = await TaskRequest.find({ userId: req.user._id })
-      .populate('taskId') // You only need task details here
+      .populate('taskId')
       .sort({ requestedAt: -1 });
 
     res.status(200).json(requests);
