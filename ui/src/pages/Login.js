@@ -2,7 +2,7 @@ import React, { useState, useContext } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { UserContext } from '../context/UserContext';
-import './Login.css'; // CSS below
+import './Login.css';
 
 function Login() {
   const { setUser } = useContext(UserContext);
@@ -20,9 +20,15 @@ function Login() {
     }
 
     try {
-      const res = await axios.post('/api/auth/login', form, { withCredentials: true });
+      // ✅ Use deployed backend URL
+      const res = await axios.post('https://infizestsys.onrender.com/api/auth/login', form, {
+        withCredentials: true
+      });
+
       if (res.data.success) {
-        const session = await axios.get('/api/auth/session', { withCredentials: true });
+        const session = await axios.get('https://infizestsys.onrender.com/api/auth/session', {
+          withCredentials: true
+        });
         const currentUser = session.data.user;
         setUser(currentUser);
         navigate(currentUser.isAdmin ? '/admin' : '/dashboard');

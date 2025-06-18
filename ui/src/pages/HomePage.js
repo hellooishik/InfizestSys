@@ -15,7 +15,7 @@ function HomePage() {
   const [isAdminLogin, setIsAdminLogin] = useState(false);
 
   useEffect(() => {
-    axios.get('/api/tasks/public', { withCredentials: true })
+    axios.get('https://infizestsys.onrender.com/api/tasks/public', { withCredentials: true })
       .then(res => setTasks(res.data))
       .catch(err => console.error('Failed to load public tasks', err));
   }, []);
@@ -23,7 +23,7 @@ function HomePage() {
   const handleAdminLogin = async (e) => {
     e.preventDefault();
     try {
-      await axios.post('/api/auth/admin-login', adminForm, { withCredentials: true });
+      await axios.post('https://infizestsys.onrender.com/api/auth/admin-login', adminForm, { withCredentials: true });
       alert('✅ Admin verified');
       setShowAdminModal(false);
       setAdminForm({ loginId: '', password: '' });
@@ -42,10 +42,10 @@ function HomePage() {
       }
 
       // Login attempt
-      const loginRes = await axios.post('/api/auth/login', loginForm, { withCredentials: true });
+      const loginRes = await axios.post('https://infizestsys.onrender.com/api/auth/login', loginForm, { withCredentials: true });
       if (!loginRes.data.success) throw new Error('Login failed');
 
-      const session = await axios.get('/api/auth/session', { withCredentials: true });
+      const session = await axios.get('https://infizestsys.onrender.com/api/auth/session', { withCredentials: true });
       const currentUser = session.data.user;
 
       if (isAdminLogin) {
@@ -56,7 +56,7 @@ function HomePage() {
         }
       } else {
         // Request to do task
-        const res = await axios.post('/api/tasks/request', { taskId: selectedTaskId }, { withCredentials: true });
+        const res = await axios.post('https://infizestsys.onrender.com/api/tasks/request', { taskId: selectedTaskId }, { withCredentials: true });
         alert(res.data.message || '✅ Task requested successfully!');
       }
 

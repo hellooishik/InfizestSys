@@ -26,7 +26,7 @@ function Dashboard() {
   useEffect(() => { statusRef.current = status; }, [status]);
   const fetchPublicRequests = async () => {
   try {
-    const res = await axios.get('/api/user/my-public-requests', { withCredentials: true });
+    const res = await axios.get('https://infizestsys.onrender.com/api/user/my-public-requests', { withCredentials: true });
     setPublicRequests(res.data);
   } catch (err) {
     console.error('Failed to fetch public task requests', err);
@@ -50,7 +50,7 @@ useEffect(() => {
 
   const fetchSession = async () => {
     try {
-      const res = await axios.get('/api/log/session', { withCredentials: true });
+      const res = await axios.get('https://infizestsys.onrender.com/api/log/session', { withCredentials: true });
       const data = res.data.data;
       setStatus(data.status);
       setBreakTime(data.break_time);
@@ -65,7 +65,7 @@ useEffect(() => {
 
   const fetchTasks = async () => {
     try {
-      const res = await axios.get('/api/tasks/my', { withCredentials: true });
+      const res = await axios.get('https://infizestsys.onrender.com/api/tasks/my', { withCredentials: true });
       setTasks(res.data);
     } catch (err) {
       console.error('Failed to fetch tasks', err);
@@ -92,7 +92,7 @@ const handleAction = async (actionStatus) => {
     setOnBreak(false);
   }
 
-  await axios.post('/api/log', { status: actionStatus, ...extra }, { withCredentials: true });
+  await axios.post('https://infizestsys.onrender.com/api/log', { status: actionStatus, ...extra }, { withCredentials: true });
 
   if (actionStatus === 'end') {
     alert(`  Work Summary:\nWorked Time: ${formatTime(workedTime)}\nBreak Time: ${breakTime} min`);
@@ -103,25 +103,25 @@ const handleAction = async (actionStatus) => {
 
 
   const requestApproval = async () => {
-    await axios.post('/api/log/ask', {}, { withCredentials: true });
+    await axios.post('https://infizestsys.onrender.com/api/log/ask', {}, { withCredentials: true });
     fetchSession();
   };
 
   const handleLogout = async () => {
-    await axios.post('/api/auth/logout', {}, { withCredentials: true });
+    await axios.post('https://infizestsys.onrender.com/api/auth/logout', {}, { withCredentials: true });
     setUser(null);
     navigate('/');
   };
 
   const submitTask = async (id) => {
-    await axios.post(`/api/tasks/${id}/submit`, {}, { withCredentials: true });
+    await axios.post(`https://infizestsys.onrender.com/api/tasks/${id}/submit`, {}, { withCredentials: true });
     fetchTasks();
   };
 
   const rejectTask = async (id) => {
     const reason = prompt('Enter rejection reason:');
     if (!reason) return;
-    await axios.post(`/api/tasks/${id}/reject`, { reason }, { withCredentials: true });
+    await axios.post(`https://infizestsys.onrender.com/api/tasks/${id}/reject`, { reason }, { withCredentials: true });
     fetchTasks();
   };
 

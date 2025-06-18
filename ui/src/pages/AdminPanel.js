@@ -34,7 +34,7 @@ function AdminPanel() {
   const itemsPerPage = 10;
 
   useEffect(() => {
-    const socket = io('http://localhost:5000', { withCredentials: true });
+    const socket = io('https://infizestsys.onrender.com', { withCredentials: true });
     socket.on('approval_request', (data) => {
       Toastify({
         text: `⚠️ Approval request from ${data.name} (${data.loginId}) at ${data.time}`,
@@ -51,30 +51,30 @@ function AdminPanel() {
   }, [darkMode]);
 
   const loadUsers = async () => {
-    const res = await axios.get('/api/admin/users', { withCredentials: true });
+    const res = await axios.get('https://infizestsys.onrender.com/api/admin/users', { withCredentials: true });
     setUsers(res.data);
   };
 
   const loadTasks = async () => {
-    const res = await axios.get('/api/admin/tasks', { withCredentials: true });
+    const res = await axios.get('https://infizestsys.onrender.com/api/admin/tasks', { withCredentials: true });
     setTasks(res.data);
     setFilteredTasks(res.data);
   };
 
   const loadLogs = async () => {
-    const res = await axios.get('/api/admin/logs/today', { withCredentials: true });
+    const res = await axios.get('https://infizestsys.onrender.com/api/admin/logs/today', { withCredentials: true });
     setLogs(res.data);
   };
 
   // The main Functions of the admin panel
   const handleLogout = async () => {
-    await axios.post('/api/auth/logout', {}, { withCredentials: true });
+    await axios.post('https://infizestsys.onrender.com/api/auth/logout', {}, { withCredentials: true });
     setUser(null);
     navigate('/');
   };
 
   const updateStatus = async (id, newStatus) => {
-    await axios.put(`/api/tasks/${id}/status`, { status: newStatus }, { withCredentials: true });
+    await axios.put(`https://infizestsys.onrender.com/api/tasks/${id}/status`, { status: newStatus }, { withCredentials: true });
     loadTasks();
   };
 
@@ -101,7 +101,7 @@ function AdminPanel() {
       else formData.append(key, val);
     });
     try {
-      await axios.post('/api/tasks', formData, {
+      await axios.post('https://infizestsys.onrender.com/api/tasks', formData, {
         withCredentials: true,
         headers: { 'Content-Type': 'multipart/form-data' }
       });
@@ -123,7 +123,7 @@ function AdminPanel() {
   const addUser = async (e) => {
     e.preventDefault();
     try {
-      await axios.post('/api/admin/users', newUser, { withCredentials: true });
+      await axios.post('https://infizestsys.onrender.com/api/admin/users', newUser, { withCredentials: true });
       Toastify({
         text: `User "${newUser.name}" added successfully!`,
         backgroundColor: 'linear-gradient(to right, #00b09b, #96c93d)',
@@ -154,7 +154,7 @@ function AdminPanel() {
 
 const loadPublicTasks = async () => {
   try {
-    const res = await axios.get('/api/tasks/public', { withCredentials: true });
+    const res = await axios.get('https://infizestsys.onrender.com/api/tasks/public', { withCredentials: true });
     console.log("✅ Public Tasks Fetched:", res.data);
     setPublicTasks(res.data);
   } catch (err) {
@@ -172,7 +172,7 @@ const toggleSection = (section) => {
 
 const loadPublicRequests = async () => {
   try {
-    const res = await axios.get('/api/admin/public-requests', { withCredentials: true });
+    const res = await axios.get('https://infizestsys.onrender.com/api/admin/public-requests', { withCredentials: true });
     console.log("✅ Public Requests Fetched:", res.data);
     setPublicRequests(res.data);
   } catch (err) {
@@ -192,7 +192,7 @@ const loadPublicRequests = async () => {
 
   const saveEditedPublicTask = async () => {
     try {
-      await axios.put(`/api/admin/public-tasks/${editingTaskId}`, editedPublicTask, { withCredentials: true });
+      await axios.put(`https://infizestsys.onrender.com/api/admin/public-tasks/${editingTaskId}`, editedPublicTask, { withCredentials: true });
       Toastify({ text: '✅ Task updated!', backgroundColor: 'green' }).showToast();
       setEditingTaskId(null);
       loadPublicTasks();
@@ -203,7 +203,7 @@ const loadPublicRequests = async () => {
 
   const deletePublicTask = async (taskId) => {
     try {
-      await axios.delete(`/api/admin/public-tasks/${taskId}`, { withCredentials: true });
+      await axios.delete(`https://infizestsys.onrender.com/api/admin/public-tasks/${taskId}`, { withCredentials: true });
       Toastify({ text: '🗑️ Task deleted!', backgroundColor: 'red' }).showToast();
       loadPublicTasks();
     } catch (err) {
@@ -221,7 +221,7 @@ const loadPublicRequests = async () => {
     formData.append('document', publicTaskForm.document);
 
     try {
-      await axios.post('/api/admin/public-task', formData, {
+      await axios.post('https://infizestsys.onrender.com/api/admin/public-task', formData, {
         withCredentials: true,
         headers: { 'Content-Type': 'multipart/form-data' }
       });
@@ -242,7 +242,7 @@ const loadPublicRequests = async () => {
   };
 
   const updateApproval = async (userId, action) => {
-    await axios.put(`/api/admin/approval/${userId}`, { action }, { withCredentials: true });
+    await axios.put(`https://infizestsys.onrender.com/api/admin/approval/${userId}`, { action }, { withCredentials: true });
     Toastify({
       text: `Approval ${action === 'approve' ? 'granted' : 'rejected'} for user`,
       backgroundColor: action === 'approve' ? 'green' : 'red',
@@ -252,7 +252,7 @@ const loadPublicRequests = async () => {
   };
 const updatePublicRequest = async (id, action) => {
   try {
-    await axios.put(`/api/admin/public-requests/${id}`, { action }, { withCredentials: true });
+    await axios.put(`https://infizestsys.onrender.com/api/admin/public-requests/${id}`, { action }, { withCredentials: true });
     Toastify({
       text: `Public task ${action}d successfully!`,
       backgroundColor: action === 'approve' ? 'green' : 'red',
@@ -273,7 +273,7 @@ const updatePublicRequest = async (id, action) => {
     const [editing, setEditing] = useState(false);
     const [newPassword, setNewPassword] = useState('');
     const savePassword = async () => {
-      await axios.put(`/api/admin/users/${userId}`, { password: newPassword }, { withCredentials: true });
+      await axios.put(`https://infizestsys.onrender.com/api/admin/users/${userId}`, { password: newPassword }, { withCredentials: true });
       Toastify({ text: 'Password updated', backgroundColor: 'green' }).showToast();
       setEditing(false);
     };
