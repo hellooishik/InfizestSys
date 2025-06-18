@@ -15,7 +15,9 @@ app.use(cors({
 }));
 
 app.use(bodyParser.json());
-
+app.get('/', (req, res) => {
+  res.send('✅ Welcome to Infizest Backend!');
+});
 // ✅ Serve uploads
 app.use('/uploads', express.static('uploads'));
 

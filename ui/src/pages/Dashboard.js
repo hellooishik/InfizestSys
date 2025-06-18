@@ -32,6 +32,7 @@ function Dashboard() {
     console.error('Failed to fetch public task requests', err);
   }
 };
+// The useEfftect is been set to the main frame of the total subsets
 useEffect(() => {
   if (!user) return navigate('/');
   fetchSession();
