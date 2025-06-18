@@ -24,11 +24,11 @@ function AdminPanel() {
   const [visibleSections, setVisibleSections] = useState({
     addUser: false,
     assignTask: false,
-    approvals: false,
+    approvals: true,
     userList: true,
     postPublicTask: false,
     approvePublicRequests: false,
-    managePublicPosts: false
+    managePublicPosts: true
   });
 
   const itemsPerPage = 10;
