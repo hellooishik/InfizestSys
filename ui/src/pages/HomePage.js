@@ -14,11 +14,28 @@ function HomePage() {
   const [adminForm, setAdminForm] = useState({ loginId: '', password: '' });
   const [isAdminLogin, setIsAdminLogin] = useState(false);
 
-  useEffect(() => {
-    axios.get('/api/tasks/public', { withCredentials: true })
-      .then(res => setTasks(res.data))
-      .catch(err => console.error('Failed to load public tasks', err));
-  }, []);
+useEffect(() => {
+  axios.get('/api/tasks/public', { withCredentials: true })
+    .then(res => {
+      console.log("📦 API response:", res.data);
+
+      // Ensure the response is an array before setting state
+      if (Array.isArray(res.data)) {
+        setTasks(res.data);
+      } else if (res.data && Array.isArray(res.data.tasks)) {
+        // In case the API returns { tasks: [...] }
+        setTasks(res.data.tasks);
+      } else {
+        console.warn("⚠️ Unexpected response format. Setting empty task list.", res.data);
+        setTasks([]);
+      }
+    })
+    .catch(err => {
+      console.error('❌ Failed to load public tasks:', err);
+      setTasks([]); // fallback to empty array on error
+    });
+}, []);
+
 
   const handleAdminLogin = async (e) => {
     e.preventDefault();
@@ -108,7 +125,7 @@ function HomePage() {
         {tasks.length === 0 ? (
           <p className="no-tasks">No public tasks available at the moment.</p>
         ) : (
-          tasks.map((task) => (
+          Array.isArray(tasks) && tasks.map((task) => (
             <div className="task-card" key={task._id}>
               <div className="card-top">
                 <h4 className="task-topic">{task.topic}</h4>

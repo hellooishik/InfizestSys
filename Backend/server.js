@@ -1,29 +1,42 @@
 const express = require('express');
 const http = require('http');
+const path = require('path');
 const mongoose = require('mongoose');
 const { Server } = require('socket.io');
+const dotenv = require('dotenv');
+dotenv.config();
+
 const app = require('./app'); // Your Express app with routes & middleware
-require('dotenv').config();
 const publicTaskRoutes = require('./routes/publicTaskRoutes');
-app.use('/api', publicTaskRoutes);
 
 const PORT = process.env.PORT || 5000;
 
-// ⬇️ Create HTTP server from Express app
+// ⬇️ API Routes
+app.use('/api', publicTaskRoutes);
+
+// ⬇️ Serve React build in production
+if (process.env.NODE_ENV === 'production') {
+  const buildPath = path.join(__dirname, 'ui', 'build');
+  app.use(express.static(buildPath));
+
+  app.get('*', (req, res) => {
+    res.sendFile(path.join(buildPath, 'index.html'));
+  });
+}
+
+// ⬇️ Create HTTP server
 const server = http.createServer(app);
 
-// ⬇️ Setup Socket.IO server
+// ⬇️ Setup Socket.IO
 const io = new Server(server, {
   cors: {
-    origin: 'http://localhost:3000',
+    origin: '*', // or replace with your production domain
     credentials: true
   }
 });
 
-// ⬇️ Global reference to emit from any controller
 global._io = io;
 
-// ⬇️ Basic connection event for debugging
 io.on('connection', (socket) => {
   console.log('⚡ New client connected:', socket.id);
 
@@ -32,7 +45,7 @@ io.on('connection', (socket) => {
   });
 });
 
-// ⬇️ MongoDB connection and start server
+// ⬇️ MongoDB Connection
 mongoose.connect(process.env.MONGO_URI, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
