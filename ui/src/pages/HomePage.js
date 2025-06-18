@@ -59,7 +59,8 @@ function HomePage() {
         const res = await axios.post('/api/tasks/request', { taskId: selectedTaskId }, { withCredentials: true });
         alert(res.data.message || '✅ Task requested successfully!');
       }
-
+      // Reset forms and close modal
+      // added show model
       setShowModal(false);
       setLoginForm({ loginId: '', password: '' });
 
@@ -128,6 +129,7 @@ function HomePage() {
   View Document
 </a>
               )}
+              
               <button className="cta-button" onClick={() => openLoginModal(task.taskId)}>
                 Request to Do
               </button>
