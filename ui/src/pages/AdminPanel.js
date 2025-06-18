@@ -45,7 +45,7 @@ function AdminPanel() {
     });
     return () => socket.disconnect();
   }, []);
-
+// useeffct hook
   useEffect(() => {
     document.body.classList.toggle('dark-mode', darkMode);
   }, [darkMode]);
