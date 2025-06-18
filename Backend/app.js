@@ -33,7 +33,6 @@ app.use(session({
 
 app.use('/api/tasks', taskRoutes);
 app.use('/api', routes);
-app.use('/api/public-tasks', require('./routes/publicTaskRoutes'));
-
+app.use('/api', require('./routes/publicTaskRoutes'));
 
 module.exports = app;

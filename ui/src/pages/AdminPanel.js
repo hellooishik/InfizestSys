@@ -24,13 +24,13 @@ function AdminPanel() {
   const [visibleSections, setVisibleSections] = useState({
     addUser: false,
     assignTask: false,
-    approvals: true,
+    approvals: false,
     userList: true,
     postPublicTask: false,
     approvePublicRequests: false,
-    managePublicPosts: true
+    managePublicPosts: false
   });
-// Set
+
   const itemsPerPage = 10;
 
   useEffect(() => {
@@ -45,7 +45,7 @@ function AdminPanel() {
     });
     return () => socket.disconnect();
   }, []);
-// useeffct hook
+
   useEffect(() => {
     document.body.classList.toggle('dark-mode', darkMode);
   }, [darkMode]);
