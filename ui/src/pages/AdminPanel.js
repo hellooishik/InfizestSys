@@ -30,7 +30,7 @@ function AdminPanel() {
     approvePublicRequests: false,
     managePublicPosts: true
   });
-
+// Set
   const itemsPerPage = 10;
 
   useEffect(() => {
