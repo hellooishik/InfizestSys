@@ -19,7 +19,9 @@ const io = new Server(server, {
     credentials: true
   }
 });
-
+app.get('/', (req, res) => {
+  res.send('✅ Welcome to Infizest Backend!');
+});
 // ⬇️ Global reference to emit from any controller
 global._io = io;
 
