@@ -16,14 +16,14 @@ const upload = multer({ storage });
 
 // ✅ Admin: Create a public task
 router.post(
-  '/admin/public-task',
+  '/admin',
   requireAdmin,
   upload.single('document'),
   controller.createPublicTask
 );
 
 // ✅ Admin: View all task requests
-router.get('/admin/public-requests', requireAdmin, async (req, res) => {
+router.get('/admin/requests', requireAdmin, async (req, res) => {
   try {
     const requests = await TaskRequest.find()
       .populate('userId', 'name loginId')
@@ -37,13 +37,13 @@ router.get('/admin/public-requests', requireAdmin, async (req, res) => {
   }
 });
 
-// 🛡️ Catch calls to /admin/public-requests/ without an :id param
-router.put('/admin/public-requests', (req, res) => {
+// 🛡️ Catch calls to /admin/requests without an :id param
+router.put('/admin/requests', (req, res) => {
   return res.status(400).json({ message: 'Missing task request ID in URL' });
 });
 
 // ✅ Admin: Approve or reject a task request by ID
-router.put('/admin/public-requests/:id', requireAdmin, async (req, res) => {
+router.put('/admin/requests/:id', requireAdmin, async (req, res) => {
   const { id } = req.params;
   const { action } = req.body;
 
@@ -67,20 +67,20 @@ router.put('/admin/public-requests/:id', requireAdmin, async (req, res) => {
   }
 });
 
+// ✅ Admin: Update or delete a public task by ID
+router.put('/admin/:id', requireAdmin, controller.updatePublicTask);
+router.delete('/admin/:id', requireAdmin, controller.deletePublicTask);
+
 /* ------------------------ 👥 User/Public Routes ------------------------ */
 
-// ✅ Get all public tasks
-router.get('/tasks/public', controller.getAllPublicTasks);
+// ✅ Public: Get all public tasks
+router.get('/', controller.getAllPublicTasks); // /api/public-tasks/
 
 // ✅ Logged-in user: Request to do a task
-router.post('/tasks/request', requireLogin, controller.requestToDo);
-
-// ✅ Admin: Update or delete a public task by ID
-router.put('/admin/public-tasks/:id', requireAdmin, controller.updatePublicTask);
-router.delete('/admin/public-tasks/:id', requireAdmin, controller.deletePublicTask);
+router.post('/request', requireLogin, controller.requestToDo);
 
 // ✅ Logged-in user: View own public task requests
-router.get('/user/my-public-requests', requireLogin, async (req, res) => {
+router.get('/my-requests', requireLogin, async (req, res) => {
   try {
     const requests = await TaskRequest.find({ userId: req.user._id })
       .populate('taskId')
