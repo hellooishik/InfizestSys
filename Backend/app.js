@@ -9,6 +9,9 @@ require('dotenv').config();
 
 const app = express();
 
+// ✅ Tell Express to trust the Render proxy (required for secure cookies)
+app.set('trust proxy', 1);
+
 // ✅ Allowed frontend domains
 const allowedOrigins = [
   'http://localhost:3000',
