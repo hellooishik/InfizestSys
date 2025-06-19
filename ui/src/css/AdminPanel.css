@@ -129,13 +129,16 @@ body.dark-mode {
 body.dark-mode .card,
 body.dark-mode .table,
 body.dark-mode .form-control,
-body.dark-mode .form-select,
-body.dark-mode .btn {
-  background-color: #2b2b3c !important;
+body.dark-mode .form-select
+ {
+     background-color: rosybrown !important;
   color: #f1f1f1 !important;
-  border-color: #444 !important;
+  border-color: black !important;
 }
-
+body.dark-mode .btn{
+  background-color: #333 !important;
+  color: #f1f1f1 !important;
+}
 body.dark-mode .table-bordered th,
 body.dark-mode .table-bordered td {
   border-color: #444;
