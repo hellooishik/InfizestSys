@@ -7,6 +7,7 @@ import axios from 'axios'; // ✅ Add this line
 
 // ✅ Ensure every axios call includes credentials (cookies)
 axios.defaults.withCredentials = true;
+axios.defaults.baseURL = 'https://infizestsys.onrender.com'; // ✅ Set API base URL directly
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
