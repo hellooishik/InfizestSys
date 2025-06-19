@@ -20,21 +20,35 @@ function Login() {
     }
 
     try {
-      // ✅ Use deployed backend URL
-      const res = await axios.post('https://infizestsys.onrender.com/api/auth/login', form, {
-        withCredentials: true
-      });
+      const loginResponse = await axios.post(
+        'https://infizestsys.onrender.com/api/auth/login',
+        form,
+        { withCredentials: true }
+      );
 
-      if (res.data.success) {
-        const session = await axios.get('https://infizestsys.onrender.com/api/auth/session', {
-          withCredentials: true
-        });
-        const currentUser = session.data.user;
-        setUser(currentUser);
-        navigate(currentUser.isAdmin ? '/admin' : '/dashboard');
+      if (!loginResponse.data.success) {
+        setError(loginResponse.data.message || 'Login failed. Please try again.');
+        return;
       }
-    } catch {
-      setError('Invalid login credentials');
+
+      const sessionResponse = await axios.get(
+        'https://infizestsys.onrender.com/api/auth/session',
+        { withCredentials: true }
+      );
+
+      const currentUser = sessionResponse.data.user;
+      if (!currentUser) {
+        setError('Failed to retrieve user session.');
+        return;
+      }
+
+      setUser(currentUser);
+      navigate(currentUser.isAdmin ? '/admin' : '/dashboard');
+    } catch (err) {
+      console.error('Login error:', err.response?.data || err.message);
+      setError(
+        err.response?.data?.message || 'Invalid login credentials or server error.'
+      );
     }
   };
 
@@ -70,7 +84,9 @@ function Login() {
               value={form.password}
               onChange={(e) => setForm({ ...form, password: e.target.value })}
             />
-            <button className="btn btn-primary w-100 mb-2" type="submit">Login</button>
+            <button className="btn btn-primary w-100 mb-2" type="submit">
+              Login
+            </button>
           </form>
           <p className="footer-text">© {new Date().getFullYear()} Infizest Technologies</p>
         </div>
