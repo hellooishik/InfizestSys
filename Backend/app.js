@@ -27,31 +27,33 @@ app.use(cors({
   credentials: true
 }));
 
+// ✅ Parse JSON request bodies
 app.use(bodyParser.json());
-
-// ✅ Welcome route
-app.get('/', (req, res) => {
-  res.send('✅ Welcome to Infizest Backend!');
-});
 
 // ✅ Static file access (e.g., uploads/docs)
 app.use('/uploads', express.static('uploads'));
 
 // ✅ Session setup for cross-origin secure login/session
 app.use(session({
+  name: 'infizest.sid',  // ✅ custom cookie name to avoid conflicts
   secret: process.env.SESSION_SECRET || 'ett_secret',
   resave: false,
   saveUninitialized: false,
   store: MongoStore.create({ mongoUrl: process.env.MONGO_URI }),
   cookie: {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
+    secure: process.env.NODE_ENV === 'production', // ✅ HTTPS in prod only
     sameSite: 'none',
-    maxAge: 1000 * 60 * 60 * 24
+    maxAge: 1000 * 60 * 60 * 24  // 24 hours
   }
 }));
 
-// ✅ API routes
+// ✅ Welcome route
+app.get('/', (req, res) => {
+  res.send('✅ Welcome to Infizest Backend!');
+});
+
+// ✅ All API routes
 app.use('/api/tasks', taskRoutes);
 app.use('/api', routes);
 app.use('/api', require('./routes/publicTaskRoutes'));
