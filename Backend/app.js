@@ -9,18 +9,21 @@ require('dotenv').config();
 
 const app = express();
 
-// ✅ Allowed frontend domains (local + deployed React app)
+// ✅ Allowed frontend domains
 const allowedOrigins = [
   'http://localhost:3000',
   'https://infizestcrm.onrender.com'
 ];
 
-// ✅ CORS Setup to support cookies (credentials)
+// ✅ CORS Setup (logs and matches partial origins safely)
 app.use(cors({
   origin: function (origin, callback) {
-    if (!origin || allowedOrigins.includes(origin)) {
+    console.log('🔍 Incoming origin:', origin);
+    
+    if (!origin || allowedOrigins.some(o => origin.startsWith(o))) {
       callback(null, true);
     } else {
+      console.error('❌ Blocked by CORS:', origin);
       callback(new Error('Not allowed by CORS'));
     }
   },
@@ -30,21 +33,21 @@ app.use(cors({
 // ✅ Parse JSON request bodies
 app.use(bodyParser.json());
 
-// ✅ Static file access (e.g., uploads/docs)
+// ✅ Static file access
 app.use('/uploads', express.static('uploads'));
 
-// ✅ Session setup for cross-origin secure login/session
+// ✅ Session setup
 app.use(session({
-  name: 'infizest.sid',  // ✅ custom cookie name to avoid conflicts
+  name: 'infizest.sid',
   secret: process.env.SESSION_SECRET || 'ett_secret',
   resave: false,
   saveUninitialized: false,
   store: MongoStore.create({ mongoUrl: process.env.MONGO_URI }),
   cookie: {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production', // ✅ HTTPS in prod only
+    secure: process.env.NODE_ENV === 'production',
     sameSite: 'none',
-    maxAge: 1000 * 60 * 60 * 24  // 24 hours
+    maxAge: 1000 * 60 * 60 * 24
   }
 }));
 
@@ -53,7 +56,7 @@ app.get('/', (req, res) => {
   res.send('✅ Welcome to Infizest Backend!');
 });
 
-// ✅ All API routes
+// ✅ API routes
 app.use('/api/tasks', taskRoutes);
 app.use('/api', routes);
 app.use('/api', require('./routes/publicTaskRoutes'));
