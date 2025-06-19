@@ -45,8 +45,8 @@ app.use(session({
   store: MongoStore.create({ mongoUrl: process.env.MONGO_URI }),
   cookie: {
     httpOnly: true,
-    secure: true,            // 🔐 Required for cross-origin (must use HTTPS)
-    sameSite: 'none',        // 🔐 Required to allow credentials in CORS
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'none',
     maxAge: 1000 * 60 * 60 * 24
   }
 }));
