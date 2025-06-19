@@ -9,16 +9,19 @@ exports.login = async (req, res) => {
   req.session.userId = user._id;
   res.json({ success: true });
 };
+exports.sessionInfo = async (req, res) => {
+  console.log("Session ID:", req.sessionID); // 🔍 log session id
+  console.log("Session Content:", req.session); // 🔍 log stored content
+  if (!req.session.userId) return res.json({ user: null });
+  const user = await User.findById(req.session.userId).select('-password');
+  res.json({ user });
+};
 
 exports.logout = (req, res) => {
   req.session.destroy(() => res.json({ success: true }));
 };
 
-exports.sessionInfo = async (req, res) => {
-  if (!req.session.userId) return res.json({ user: null });
-  const user = await User.findById(req.session.userId).select('-password');
-  res.json({ user });
-};
+
 
 exports.registerAdmin = async (req, res) => {
   const { name, email, loginId, password } = req.body;
