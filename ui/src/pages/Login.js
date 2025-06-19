@@ -20,21 +20,16 @@ function Login() {
     }
 
     try {
-      const loginResponse = await axios.post(
-        'https://infizestsys.onrender.com/api/auth/login',
-        form,
-        { withCredentials: true }
-      );
+      // ✅ Login request (baseURL and withCredentials set globally)
+      const loginResponse = await axios.post('/api/auth/login', form);
 
       if (!loginResponse.data.success) {
         setError(loginResponse.data.message || 'Login failed. Please try again.');
         return;
       }
 
-      const sessionResponse = await axios.get(
-        'https://infizestsys.onrender.com/api/auth/session',
-        { withCredentials: true }
-      );
+      // ✅ Retrieve session to confirm and get user
+      const sessionResponse = await axios.get('/api/auth/session');
 
       const currentUser = sessionResponse.data.user;
       if (!currentUser) {
