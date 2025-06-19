@@ -1,167 +1,145 @@
-/* Dashboard.css - Pro Version */
-.button-group {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 1rem;
-  justify-content: start;
-}
-
-.button-group button {
-  font-weight: 600;
-  padding: 0.65rem 1.8rem;
-  border: none;
-  border-radius: 12px;
-  font-size: 1rem;
-  position: relative;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  background: linear-gradient(to right, #667eea, #764ba2);
-  color: white;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.1);
-  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);
-}
-
-.button-group button:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.3);
-  background: linear-gradient(to right, #5a67d8, #6b46c1);
-}
-
-.button-group button:active {
-  transform: scale(0.98);
-  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2) inset;
-}
-
-/* Specific button color variants (optional) */
-.button-group .btn-success {
-  background: linear-gradient(to right, #00c851, #007e33);
-}
-
-.button-group .btn-warning {
-  background: linear-gradient(to right, #ffbb33, #ff8800);
-}
-
-.button-group .btn-danger {
-  background: linear-gradient(to right, #ff4444, #cc0000);
-}
-
-.button-group .btn-info {
-  background: linear-gradient(to right, #33b5e5, #0099cc);
-}
-
-.button-group .btn-outline-dark {
-  background: transparent;
-  color: #333;
-  border: 2px solid #333;
-}
-
-.button-group .btn-outline-dark:hover {
-  background: #333;
-  color: #fff;
-}
-
-/* Add icons using pseudo elements if desired */
-.button-group button::before {
-  content: attr(data-icon);
-  font-family: 'Font Awesome 6 Free'; /* If you have it loaded */
-  font-weight: 900;
-  margin-right: 0.5rem;
-  display: inline-block;
-}
-
-/* Dark Mode Support */
-body.dark-mode .button-group button {
-  background: linear-gradient(to right, #232526, #414345);
-  color: #f1f1f1;
-  border: none;
-  text-shadow: none;
-}
-
-body.dark-mode .button-group .btn-outline-dark {
-  border-color: #aaa;
-  color: #aaa;
-}
-
-body.dark-mode .button-group .btn-outline-dark:hover {
-  background: #aaa;
-  color: #000;
-}
-
+/* 🎯 Modern, Freelance-style Dashboard.css */
 body {
-  background: linear-gradient(135deg, #fdfbfb 0%, #ebedee 100%);
   font-family: 'Poppins', sans-serif;
+  background: #f4f6f8;
   color: #333;
   margin: 0;
   padding: 0;
 }
 
 .dashboard-wrapper {
-  padding: 3rem;
-  max-width: 1400px;
-  margin: 0 auto;
+  max-width: 1300px;
+  margin: auto;
+  padding: 2rem 1rem;
   animation: slideIn 0.8s ease-out;
 }
 
+/* Header */
 .dashboard-header {
   background: linear-gradient(to right, #4e54c8, #8f94fb);
   color: #fff;
-  padding: 2rem;
-  border-radius: 12px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+  padding: 1.5rem 2rem;
+  border-radius: 1rem;
   margin-bottom: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
   animation: fadeInDown 1s ease;
 }
 
 .dashboard-header h2 {
   margin: 0;
   font-weight: 600;
+  font-size: 1.8rem;
 }
 
 .dashboard-header button {
-  background-color: #fff;
-  border: none;
+  align-self: flex-start;
+  background: #fff;
   color: #4e54c8;
-  font-weight: 500;
-  padding: 0.5rem 1rem;
+  border: none;
+  padding: 0.6rem 1.2rem;
   border-radius: 8px;
+  font-weight: 500;
+  cursor: pointer;
   transition: all 0.3s ease;
 }
 
 .dashboard-header button:hover {
-  background-color: #e2e4ff;
+  background-color: #eef0ff;
   transform: scale(1.05);
 }
 
-.card {
+/* Info Cards */
+.info-cards .card {
   background: #fff;
   border: none;
-  border-radius: 1.2rem;
+  border-radius: 1rem;
   padding: 1.5rem;
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.07);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+  transition: all 0.3s ease;
 }
 
-.card:hover {
-  transform: translateY(-8px);
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
+.info-cards .card:hover {
+  transform: translateY(-6px);
 }
 
+/* Badge Styles */
 .badge {
-  font-size: 0.95rem;
-  padding: 0.4em 1em;
+  padding: 0.4rem 1rem;
   border-radius: 0.75rem;
   text-transform: capitalize;
+  font-size: 0.85rem;
+}
+
+.bg-success {
+  background: #d1e7dd;
+  color: #0f5132;
+}
+.bg-warning {
+  background: #fff3cd;
+  color: #664d03;
+}
+.bg-danger {
+  background: #f8d7da;
+  color: #842029;
+}
+.bg-primary {
+  background: #cfe2ff;
+  color: #084298;
+}
+.bg-secondary {
+  background: #e2e3e5;
+  color: #41464b;
+}
+
+/* Button Group */
+.button-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 2rem;
 }
 
 .button-group button {
-  font-weight: 500;
-  padding: 0.6rem 1.5rem;
+  font-weight: 600;
+  padding: 0.6rem 1.6rem;
+  border: none;
   border-radius: 8px;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+  font-size: 0.95rem;
+  cursor: pointer;
   transition: all 0.3s ease;
+}
+
+.btn-success {
+  background: #198754;
+  color: #fff;
+}
+.btn-warning {
+  background: #ffc107;
+  color: #000;
+}
+.btn-primary {
+  background: #0d6efd;
+  color: #fff;
+}
+.btn-danger {
+  background: #dc3545;
+  color: #fff;
+}
+.btn-info {
+  background: #0dcaf0;
+  color: #000;
+}
+.btn-outline-dark {
+  background: transparent;
+  color: #333;
+  border: 2px solid #333;
+}
+
+.btn-outline-dark:hover {
+  background: #333;
+  color: #fff;
 }
 
 .button-group button:hover {
@@ -169,61 +147,68 @@ body {
   opacity: 0.9;
 }
 
+/* Tables */
 .table-responsive {
+  margin-top: 1rem;
   background: #fff;
   padding: 1rem;
   border-radius: 1rem;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.05);
-  animation: fadeInTable 1s ease;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.04);
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
 }
 
 .table th, .table td {
-  vertical-align: middle;
   text-align: center;
+  padding: 0.75rem;
+  vertical-align: middle;
+  font-size: 14px;
 }
 
+.table thead {
+  background-color: #f8f9fa;
+}
+
+.table a {
+  color: #0d6efd;
+  text-decoration: none;
+}
+
+.table a:hover {
+  text-decoration: underline;
+}
+
+/* Modal */
 .modal-backdrop {
   position: fixed;
   top: 0; left: 0;
   width: 100vw; height: 100vh;
-  background: rgba(20, 20, 20, 0.6);
+  background: rgba(20, 20, 20, 0.7);
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 9999;
+  z-index: 1050;
   animation: fadeInBackdrop 0.4s ease;
 }
 
 .modal-box {
-  background: linear-gradient(135deg, #ffffff, #f3f4f8);
-  padding: 2.5rem;
-  border-radius: 1.5rem;
+  background: #fff;
+  padding: 2rem;
+  border-radius: 1rem;
   max-width: 500px;
   width: 90%;
   text-align: center;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 10px 40px rgba(0,0,0,0.2);
   animation: zoomIn 0.4s ease;
 }
 
 .modal-box h4 {
   margin-bottom: 1rem;
-  font-size: 1.5rem;
   color: #4e54c8;
-}
-
-.modal-box button {
-  margin-top: 1rem;
-  padding: 0.6rem 1.4rem;
-  border: none;
-  border-radius: 0.8rem;
-  font-weight: 500;
-  color: #fff;
-  background-color: #4e54c8;
-  transition: background 0.3s ease;
-}
-
-.modal-box button:hover {
-  background-color: #3c40aa;
 }
 
 /* Animations */
@@ -231,40 +216,44 @@ body {
   from { transform: translateY(50px); opacity: 0; }
   to { transform: translateY(0); opacity: 1; }
 }
-
 @keyframes fadeInDown {
   from { transform: translateY(-30px); opacity: 0; }
   to { transform: translateY(0); opacity: 1; }
 }
-
-@keyframes fadeInTable {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-
 @keyframes fadeInBackdrop {
   from { opacity: 0; }
   to { opacity: 1; }
 }
-
 @keyframes zoomIn {
   from { transform: scale(0.8); opacity: 0; }
   to { transform: scale(1); opacity: 1; }
 }
 
-/* Responsive Enhancements */
+/* Responsive */
 @media (max-width: 768px) {
   .dashboard-wrapper {
-    padding: 1.5rem;
-  }
-  .card {
     padding: 1rem;
   }
+
   .dashboard-header {
+    padding: 1rem;
     flex-direction: column;
     align-items: flex-start;
   }
+
+  .info-cards .card {
+    padding: 1rem;
+  }
+
   .button-group {
     flex-direction: column;
   }
-} 
+
+  .modal-box {
+    padding: 1.5rem;
+  }
+
+  .table th, .table td {
+    font-size: 12px;
+  }
+}
