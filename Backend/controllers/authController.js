@@ -3,12 +3,17 @@ const User = require('../models/User');
 exports.login = async (req, res) => {
   const { loginId, password } = req.body;
   const user = await User.findOne({ loginId });
+
   if (!user || user.password !== password) {
     return res.status(401).json({ message: 'Invalid login credentials' });
   }
-  req.session.userId = user._id;
+
+  req.session.userId = user._id; // ✅ this line should work
+  console.log('✅ User ID stored in session:', req.session.userId);
+  console.log('✅ Full session after login:', req.session);
   res.json({ success: true });
 };
+
 exports.sessionInfo = async (req, res) => {
   console.log("Session ID:", req.sessionID); // 🔍 log session id
   console.log("Session Content:", req.session); // 🔍 log stored content
