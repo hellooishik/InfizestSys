@@ -18,7 +18,7 @@ function Dashboard() {
   const [onBreak, setOnBreak] = useState(false);
   const breakStartRef = useRef(null);
   const [publicRequests, setPublicRequests] = useState([]);
-  const SERVER_URL = 'http://localhost:5000'; // Move this to top if needed
+  const SERVER_URL = 'https://infizestsys.onrender.com';
 
   const inactivityTimeoutRef = useRef(null);
   const statusRef = useRef(status);
