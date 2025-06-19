@@ -121,7 +121,7 @@ function HomePage() {
               {task.documentPath && (
                 <a
   className="doc-link"
-  href={`http://localhost:5000/${task.documentPath}`}
+  href={`https://infizestsys.onrender.com/${task.documentPath}`}
   target="_blank"
   rel="noopener noreferrer"
 >
