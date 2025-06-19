@@ -448,7 +448,7 @@ const updatePublicRequest = async (id, action) => {
     {publicTasks.length === 0 ? (
       <p className="text-muted">No public tasks posted yet.</p>
     ) : (
-      <table className="table table-bordered table-hover">
+      <table className="table-responsive table table-bordered table-hover">
         <thead className="table-dark">
           <tr>
             <th>Task ID</th>
@@ -486,7 +486,7 @@ const updatePublicRequest = async (id, action) => {
 {visibleSections.approvePublicRequests && (
   <>
     <h5 className="mt-5 text-danger">Public Task Requests</h5>
-    <table className="table table-bordered">
+    <table className="table-responsive table table-bordered">
       <thead className="table-light">
         <tr>
           <th>Task ID</th>
@@ -575,7 +575,7 @@ const updatePublicRequest = async (id, action) => {
         </div>
 
       {/* Task Table */}
-<table className="table table-bordered table-hover">
+<table className="table-responsive table table-bordered table-hover">
   <thead>
     <tr>
       <th>Job ID</th> 
@@ -611,7 +611,7 @@ const updatePublicRequest = async (id, action) => {
         {visibleSections.approvals && (
           <>
             <h5 className="mt-5">Approval Requests</h5>
-            <table className="table table-bordered">
+            <table className="table-responsive table table-bordered">
               <thead className="table-light">
                 <tr>
                   <th>Employee</th>
@@ -643,7 +643,7 @@ const updatePublicRequest = async (id, action) => {
         {visibleSections.userList && (
           <>
             <h5 className="mt-5">Employee User List</h5>
-            <table className="table table-striped">
+            <table className="table-responsive table table-striped">
               <thead>
                 <tr>
                   <th>Name</th>
