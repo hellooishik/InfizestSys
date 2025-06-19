@@ -13,6 +13,57 @@ body.dark-mode {
   background-color: #1e1e2f;
   color: #f1f1f1;
 }
+/* Hamburger Toggle Button */
+.hamburger-btn {
+  position: fixed;
+  top: 15px;
+  left: 15px;
+  background: #450fc5;
+  color: white;
+  font-size: 24px;
+  padding: 8px 14px;
+  border: none;
+  border-radius: 6px;
+  z-index: 1100;
+  display: none;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+}
+
+/* Show only on mobile */
+@media (max-width: 768px) {
+  .hamburger-btn {
+    display: block;
+  }
+
+  .sidebar {
+    display: none;
+  }
+
+  .sidebar.open {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    background-color: #450fc5;
+    padding: 1rem;
+    position: absolute;
+    top: 55px;
+    left: 0;
+    z-index: 1050;
+    border-bottom: 1px solid #ffffff44;
+  }
+
+  .sidebar.collapsed {
+    display: none;
+  }
+
+  body {
+    padding-left: 0 !important;
+  }
+
+  .container {
+    padding-top: 4rem;
+  }
+}
 
 /* Sidebar */
 .sidebar {

@@ -11,6 +11,7 @@ import { Moon, Sun } from 'lucide-react'; // Optional
 function AdminPanel() {
   const { user, setUser } = useContext(UserContext);
   const navigate = useNavigate();
+  const [sidebarOpen, setSidebarOpen] = useState(true);
 
   const [users, setUsers] = useState([]);
   const [tasks, setTasks] = useState([]);
@@ -313,67 +314,49 @@ const updatePublicRequest = async (id, action) => {
     <div className="d-flex">
      {/* The main module is been set to the main frame of the hierkey  */}
       {/* Sidebar */}
-<div className="sidebar">
+     {/* Hamburger button (mobile only) */}
+<button className="hamburger-btn d-md-none" onClick={() => setSidebarOpen(!sidebarOpen)}>
+  ☰
+</button>
+
+{/* Sidebar */}
+<div className={`sidebar ${sidebarOpen ? 'open' : 'collapsed'}`}>
   <h4 className="mb-4">Admin</h4>
-<div
-    className={`toggle-btn ${activeSection === 'addUser' ? 'active' : ''}`}
-    onClick={() => toggleSection('addUser')}
-  >
-    Add New User
-  </div>
 
-  <div
-    className={`toggle-btn ${activeSection === 'assignTask' ? 'active' : ''}`}
-    onClick={() => toggleSection('assignTask')}
-  >
-    Assign Task
-  </div>
-
-  <div
-    className={`toggle-btn ${activeSection === 'approvals' ? 'active' : ''}`}
-    onClick={() => toggleSection('approvals')}
-  >
-    Approval Requests
-  </div>
-
-  <div
-    className={`toggle-btn ${activeSection === 'userList' ? 'active' : ''}`}
-    onClick={() => toggleSection('userList')}
-  >
-    User List
-  </div>
-
-  <div
-    className={`toggle-btn ${activeSection === 'postPublicTask' ? 'active' : ''}`}
-    onClick={() => toggleSection('postPublicTask')}
-  >
-    Post Public Task
-  </div>
-
-  <div
-    className={`toggle-btn ${activeSection === 'approvePublicRequests' ? 'active' : ''}`}
-    onClick={() => toggleSection('approvePublicRequests')}
-  >
-    Public Task Requests
-  </div>
-
-  <div
-    className={`toggle-btn ${activeSection === 'managePublicPosts' ? 'active' : ''}`}
-    onClick={() => toggleSection('managePublicPosts')}
-  >
-    Manage Public Posts
-  </div>
-
+  {[
+    { label: 'Add New User', key: 'addUser' },
+    { label: 'Assign Task', key: 'assignTask' },
+    { label: 'Approval Requests', key: 'approvals' },
+    { label: 'User List', key: 'userList' },
+    { label: 'Post Public Task', key: 'postPublicTask' },
+    { label: 'Public Task Requests', key: 'approvePublicRequests' },
+    { label: 'Manage Public Posts', key: 'managePublicPosts' },
+  ].map(({ label, key }) => (
+    <div
+      key={key}
+      className={`toggle-btn ${activeSection === key ? 'active' : ''}`}
+      onClick={() => {
+        toggleSection(key);
+        setSidebarOpen(false); // auto-close sidebar on mobile
+      }}
+    >
+      {label}
+    </div>
+  ))}
 
   <div className="mt-4">
     <button className="btn btn-outline-secondary w-100" onClick={() => setDarkMode(!darkMode)}>
       {darkMode ? 'Light Mode' : 'Dark Mode'}
     </button>
   </div>
+
   <div className="mt-3">
-    <button className="btn btn-outline-danger w-100" onClick={handleLogout}>Logout</button>
+    <button className="btn btn-outline-danger w-100" onClick={handleLogout}>
+      Logout
+    </button>
   </div>
 </div>
+
 
      {/* the main module is been set to the main frame of the total hierkey  */}
 
