@@ -19,7 +19,7 @@ function Dashboard() {
   const breakStartRef = useRef(null);
   const [publicRequests, setPublicRequests] = useState([]);
   const SERVER_URL = 'https://infizestsys.onrender.com';
-
+// the Inactivy Monitoe will be set to the main frame of the hirekey set level 
   const inactivityTimeoutRef = useRef(null);
   const statusRef = useRef(status);
 
@@ -62,7 +62,7 @@ useEffect(() => {
       console.error('Failed to fetch session', err);
     }
   };
-
+// The FetchTask is assigning the main modules is been set to the main frame of the hirekey
   const fetchTasks = async () => {
     try {
       const res = await axios.get('https://infizestsys.onrender.com/api/tasks/my', { withCredentials: true });
@@ -166,7 +166,7 @@ const handleAction = async (actionStatus) => {
       if (inactivityTimeoutRef.current) clearTimeout(inactivityTimeoutRef.current);
     };
   };
-
+// the useEffect hooks will be set to the main frame of the total hierarchy subsets
   useEffect(() => {
     if (!user) return navigate('/');
     fetchSession();
@@ -225,8 +225,9 @@ const handleAction = async (actionStatus) => {
           </div>
         </div>
       </div>
-
+      {/* The conditional rendering will be set to the main frame of the total hierarchy subsets */}
     <div className="button-group d-flex flex-wrap gap-2 mb-4">
+    
   {showStart && !onBreak && (
     <button className="btn btn-success" onClick={() => handleAction('start')} disabled={isBlocked}>
       Start

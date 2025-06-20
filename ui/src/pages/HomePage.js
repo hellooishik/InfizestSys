@@ -13,12 +13,18 @@ function HomePage() {
   const [showAdminModal, setShowAdminModal] = useState(false);
   const [adminForm, setAdminForm] = useState({ loginId: '', password: '' });
   const [isAdminLogin, setIsAdminLogin] = useState(false);
+  const [selectedTopic, setSelectedTopic] = useState('');
 
   useEffect(() => {
     axios.get('https://infizestsys.onrender.com/api/tasks/public', { withCredentials: true })
       .then(res => setTasks(res.data))
       .catch(err => console.error('Failed to load public tasks', err));
   }, []);
+
+  const uniqueTopics = [...new Set(tasks.map(task => task.topic))];
+  const filteredTasks = selectedTopic
+    ? tasks.filter(task => task.topic === selectedTopic)
+    : tasks;
 
   const handleAdminLogin = async (e) => {
     e.preventDefault();
@@ -41,7 +47,6 @@ function HomePage() {
         return;
       }
 
-      // Login attempt
       const loginRes = await axios.post('https://infizestsys.onrender.com/api/auth/login', loginForm, { withCredentials: true });
       if (!loginRes.data.success) throw new Error('Login failed');
 
@@ -55,7 +60,6 @@ function HomePage() {
           alert('❌ You are not authorized as admin');
         }
       } else {
-        // Request to do task
         const res = await axios.post('https://infizestsys.onrender.com/api/tasks/request', { taskId: selectedTaskId }, { withCredentials: true });
         alert(res.data.message || '✅ Task requested successfully!');
       }
@@ -98,16 +102,31 @@ function HomePage() {
         </div>
       </nav>
 
+      <div className="topic-filter" style={{ margin: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+        <label htmlFor="topicSelect"><strong>Select a Project Topic:</strong></label>
+        <select
+          id="topicSelect"
+          value={selectedTopic}
+          onChange={(e) => setSelectedTopic(e.target.value)}
+          className="form-select"
+        >
+          <option value="">-- Show All --</option>
+          {uniqueTopics.map((topic, idx) => (
+            <option key={idx} value={topic}>{topic}</option>
+          ))}
+        </select>
+      </div>
+
       <header className="feed-header">
         <h2>Trending Task</h2>
         <p className="subtext">Hand-picked, real-time tasks curated just for you.</p>
       </header>
 
       <div className="task-grid">
-        {tasks.length === 0 ? (
+        {filteredTasks.length === 0 ? (
           <p className="no-tasks">No public tasks available at the moment.</p>
         ) : (
-          tasks.map((task) => (
+          filteredTasks.map((task) => (
             <div className="task-card" key={task._id}>
               <div className="card-top">
                 <h4 className="task-topic">{task.topic}</h4>
@@ -120,13 +139,13 @@ function HomePage() {
               </div>
               {task.documentPath && (
                 <a
-  className="doc-link"
-  href={`https://infizestsys.onrender.com/${task.documentPath}`}
-  target="_blank"
-  rel="noopener noreferrer"
->
-  View Document
-</a>
+                  className="doc-link"
+                  href={`https://infizestsys.onrender.com/${task.documentPath}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  View Document
+                </a>
               )}
               <button className="cta-button" onClick={() => openLoginModal(task.taskId)}>
                 Request to Do
