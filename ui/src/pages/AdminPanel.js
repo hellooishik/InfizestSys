@@ -46,7 +46,9 @@ function AdminPanel() {
     });
     return () => socket.disconnect();
   }, []);
+// The useEffect hooks will be set to the main frame of the total hierkey 
 
+// the set of the integers will be set to to the main frame of the total hierkey 
   useEffect(() => {
     document.body.classList.toggle('dark-mode', darkMode);
   }, [darkMode]);
@@ -121,6 +123,7 @@ function AdminPanel() {
       }).showToast();
     }
   };
+
   const addUser = async (e) => {
     e.preventDefault();
     try {
@@ -140,7 +143,6 @@ function AdminPanel() {
       }).showToast();
     }
   };
-
   const [publicRequests, setPublicRequests] = useState([]);
   const [publicTasks, setPublicTasks] = useState([]);
   const [publicTaskForm, setPublicTaskForm] = useState({
@@ -152,14 +154,13 @@ function AdminPanel() {
   });
   const [editingTaskId, setEditingTaskId] = useState(null);
   const [editedPublicTask, setEditedPublicTask] = useState({ topic: '', wordCount: '', estimatedQuote: '' });
-
-const loadPublicTasks = async () => {
+  const loadPublicTasks = async () => {
   try {
     const res = await axios.get('https://infizestsys.onrender.com/api/tasks/public', { withCredentials: true });
-    console.log("✅ Public Tasks Fetched:", res.data);
+    console.log("Public Tasks Fetched:", res.data);
     setPublicTasks(res.data);
   } catch (err) {
-    console.error('❌ Failed to load public tasks:', err);
+    console.error('Failed to load public tasks:', err);
   }
 };
 const [activeSection, setActiveSection] = useState('');
@@ -170,18 +171,15 @@ const toggleSection = (section) => {
   }));
   setActiveSection(section);
 };
-
 const loadPublicRequests = async () => {
   try {
     const res = await axios.get('https://infizestsys.onrender.com/api/admin/public-requests', { withCredentials: true });
-    console.log("✅ Public Requests Fetched:", res.data);
+    console.log("Public Requests Fetched:", res.data);
     setPublicRequests(res.data);
   } catch (err) {
-    console.error('❌ Failed to fetch public requests:', err);
+    console.error('Failed to fetch public requests:', err);
   }
 };
-
-
   const handleEditPublicTask = (task) => {
     setEditingTaskId(task._id);
     setEditedPublicTask({
@@ -194,21 +192,21 @@ const loadPublicRequests = async () => {
   const saveEditedPublicTask = async () => {
     try {
       await axios.put(`https://infizestsys.onrender.com/api/admin/public-tasks/${editingTaskId}`, editedPublicTask, { withCredentials: true });
-      Toastify({ text: '✅ Task updated!', backgroundColor: 'green' }).showToast();
+      Toastify({ text: 'Task updated!', backgroundColor: 'green' }).showToast();
       setEditingTaskId(null);
       loadPublicTasks();
     } catch (err) {
-      Toastify({ text: '❌ Update failed', backgroundColor: 'red' }).showToast();
+      Toastify({ text: 'Update failed', backgroundColor: 'red' }).showToast();
     }
   };
 
   const deletePublicTask = async (taskId) => {
     try {
       await axios.delete(`https://infizestsys.onrender.com/api/admin/public-tasks/${taskId}`, { withCredentials: true });
-      Toastify({ text: '🗑️ Task deleted!', backgroundColor: 'red' }).showToast();
+      Toastify({ text: 'Task deleted!', backgroundColor: 'red' }).showToast();
       loadPublicTasks();
     } catch (err) {
-      Toastify({ text: '❌ Delete failed', backgroundColor: 'orange' }).showToast();
+      Toastify({ text: 'Delete failed', backgroundColor: 'orange' }).showToast();
     }
   };
 
@@ -220,14 +218,13 @@ const loadPublicRequests = async () => {
     formData.append('wordCount', publicTaskForm.wordCount);
     formData.append('estimatedQuote', publicTaskForm.estimatedQuote);
     formData.append('document', publicTaskForm.document);
-
     try {
       await axios.post('https://infizestsys.onrender.com/api/admin/public-task', formData, {
         withCredentials: true,
         headers: { 'Content-Type': 'multipart/form-data' }
       });
       Toastify({
-        text: '✅ Public Task posted successfully!',
+        text: 'Public Task posted successfully!',
         backgroundColor: 'green',
         duration: 3000
       }).showToast();
@@ -235,13 +232,12 @@ const loadPublicRequests = async () => {
       loadPublicTasks();
     } catch (err) {
       Toastify({
-        text: `❌ Failed to post: ${err.response?.data?.message || err.message}`,
+        text: `Failed to post: ${err.response?.data?.message || err.message}`,
         backgroundColor: 'red',
         duration: 4000
       }).showToast();
     }
   };
-
   const updateApproval = async (userId, action) => {
     await axios.put(`https://infizestsys.onrender.com/api/admin/approval/${userId}`, { action }, { withCredentials: true });
     Toastify({
@@ -267,9 +263,7 @@ const updatePublicRequest = async (id, action) => {
       duration: 3000
     }).showToast();
   }
-};
-
-
+}; // The Change Password Components will be set to the main Frame of the Total hierkeu
   const ChangePassword = ({ userId }) => {
     const [editing, setEditing] = useState(false);
     const [newPassword, setNewPassword] = useState('');
@@ -356,10 +350,7 @@ const updatePublicRequest = async (id, action) => {
     </button>
   </div>
 </div>
-
-
      {/* the main module is been set to the main frame of the total hierkey  */}
-
       {/* Main Content */}
       <div className="container mt-4">
           <h2 className="text-center mb-4 fw-bold">Infizest Admin Panel</h2>
@@ -463,9 +454,6 @@ const updatePublicRequest = async (id, action) => {
     )}
   </div>
 )}
-
-
-
 {visibleSections.approvePublicRequests && (
   <>
     <h5 className="mt-5 text-danger">Public Task Requests</h5>
@@ -530,8 +518,6 @@ const updatePublicRequest = async (id, action) => {
     </table>
   </>
 )}
-
-
         {visibleSections.assignTask && (
           <div className="card p-3 mb-4 shadow-sm">
             <h5 className="text-success">Assign Task</h5>
