@@ -19,7 +19,7 @@ function Dashboard() {
   const breakStartRef = useRef(null);
   const [publicRequests, setPublicRequests] = useState([]);
   const SERVER_URL = 'https://infizestsys.onrender.com';
-// the Inactivy Monitoe will be set to the main frame of the hirekey set level 
+// the Inactivy Monitoe will be set to the main frame of the hirekey set level
   const inactivityTimeoutRef = useRef(null);
   const statusRef = useRef(status);
 
@@ -37,7 +37,7 @@ useEffect(() => {
   if (!user) return navigate('/');
   fetchSession();
   fetchTasks();
-  fetchPublicRequests(); // 👈 Important for requests to show
+  fetchPublicRequests(); //  Important for requests to show
   const interval = setInterval(fetchSession, 10000);
   const cleanup = startInactivityMonitor();
   return () => {
@@ -45,9 +45,6 @@ useEffect(() => {
     cleanup();
   };
 }, [user]);
-
-
-
   const fetchSession = async () => {
     try {
       const res = await axios.get('https://infizestsys.onrender.com/api/log/session', { withCredentials: true });
@@ -61,8 +58,7 @@ useEffect(() => {
     } catch (err) {
       console.error('Failed to fetch session', err);
     }
-  };
-// The FetchTask is assigning the main modules is been set to the main frame of the hirekey
+  };    
   const fetchTasks = async () => {
     try {
       const res = await axios.get('https://infizestsys.onrender.com/api/tasks/my', { withCredentials: true });
@@ -71,60 +67,48 @@ useEffect(() => {
       console.error('Failed to fetch tasks', err);
     }
   };
-
 const handleAction = async (actionStatus) => {
   let extra = {};
-
   if (actionStatus === 'pause') {
-    breakStartRef.current = new Date();      // Record the start of the break
-    setOnBreak(true);                        // UI state flag
+    breakStartRef.current = new Date();      
+    setOnBreak(true);                       
   }
 
   if (actionStatus === 'start' && onBreak && breakStartRef.current) {
     const now = new Date();
     const breakDuration = Math.ceil((now - breakStartRef.current) / 60000); // in minutes
     extra.break = breakDuration;
-
-    // Immediately update the UI with new break time 
     setBreakTime(prev => prev + breakDuration);
 
     breakStartRef.current = null;
     setOnBreak(false);
   }
-
   await axios.post('https://infizestsys.onrender.com/api/log', { status: actionStatus, ...extra }, { withCredentials: true });
 
   if (actionStatus === 'end') {
     alert(`  Work Summary:\nWorked Time: ${formatTime(workedTime)}\nBreak Time: ${breakTime} min`);
   }
-
   fetchSession(); // Sync with backend after update
 };
-
-
   const requestApproval = async () => {
     await axios.post('https://infizestsys.onrender.com/api/log/ask', {}, { withCredentials: true });
     fetchSession();
   };
-
   const handleLogout = async () => {
     await axios.post('https://infizestsys.onrender.com/api/auth/logout', {}, { withCredentials: true });
     setUser(null);
     navigate('/');
   };
-
   const submitTask = async (id) => {
     await axios.post(`https://infizestsys.onrender.com/api/tasks/${id}/submit`, {}, { withCredentials: true });
     fetchTasks();
   };
-
   const rejectTask = async (id) => {
     const reason = prompt('Enter rejection reason:');
     if (!reason) return;
     await axios.post(`https://infizestsys.onrender.com/api/tasks/${id}/reject`, { reason }, { withCredentials: true });
     fetchTasks();
   };
-
   const formatTime = (seconds) => {
     if (!seconds || seconds <= 0) return "Day not started";
     const h = Math.floor(seconds / 3600);
@@ -140,17 +124,14 @@ const handleAction = async (actionStatus) => {
     const mins = Math.floor((diff % 3600000) / 60000);
     return `${hours}h ${mins}m left`;
   };
-
   const greeting = () => {
     const hr = new Date().getHours();
     if (hr < 12) return 'Good morning';
     if (hr < 18) return 'Good afternoon';
     return 'Good evening';
   };
-
   const startInactivityMonitor = () => {
     const events = ['mousemove', 'keydown', 'mousedown', 'touchstart'];
-
     const resetTimer = () => {
       if (inactivityTimeoutRef.current) clearTimeout(inactivityTimeoutRef.current);
       inactivityTimeoutRef.current = setTimeout(() => {
@@ -178,7 +159,6 @@ const handleAction = async (actionStatus) => {
       cleanup();
     };
   }, [user]);
-
   useEffect(() => {
     if (status === 'running') {
       const interval = setInterval(() => {

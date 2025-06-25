@@ -31,9 +31,8 @@ function AdminPanel() {
     approvePublicRequests: false,
     managePublicPosts: false
   });
-
+  // The Items per page for this admin panel
   const itemsPerPage = 10;
-
   useEffect(() => {
     const socket = io('https://infizestsys.onrender.com', { withCredentials: true });
     socket.on('approval_request', (data) => {
@@ -46,13 +45,11 @@ function AdminPanel() {
     });
     return () => socket.disconnect();
   }, []);
-// The useEffect hooks will be set to the main frame of the total hierkey 
-
-// the set of the integers will be set to to the main frame of the total hierkey 
+  // the useEffcts hooks will be set to the main frame of the total domain chian 
   useEffect(() => {
     document.body.classList.toggle('dark-mode', darkMode);
   }, [darkMode]);
-
+  // the loadusers will be set to the main frame of the total domain chain
   const loadUsers = async () => {
     const res = await axios.get('https://infizestsys.onrender.com/api/admin/users', { withCredentials: true });
     setUsers(res.data);
@@ -108,6 +105,7 @@ function AdminPanel() {
         withCredentials: true,
         headers: { 'Content-Type': 'multipart/form-data' }
       });
+      // The Toasify notification for task assignment
       Toastify({
         text: `Task "${taskForm.jobId}" assigned to "${taskForm.loginId}"`,
         backgroundColor: 'linear-gradient(to right, #007991, #78ffd6)',
@@ -123,7 +121,6 @@ function AdminPanel() {
       }).showToast();
     }
   };
-
   const addUser = async (e) => {
     e.preventDefault();
     try {

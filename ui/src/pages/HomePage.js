@@ -14,23 +14,20 @@ function HomePage() {
   const [adminForm, setAdminForm] = useState({ loginId: '', password: '' });
   const [isAdminLogin, setIsAdminLogin] = useState(false);
   const [selectedTopic, setSelectedTopic] = useState('');
-
   useEffect(() => {
     axios.get('https://infizestsys.onrender.com/api/tasks/public', { withCredentials: true })
       .then(res => setTasks(res.data))
       .catch(err => console.error('Failed to load public tasks', err));
   }, []);
-
   const uniqueTopics = [...new Set(tasks.map(task => task.topic))];
   const filteredTasks = selectedTopic
     ? tasks.filter(task => task.topic === selectedTopic)
     : tasks;
-
   const handleAdminLogin = async (e) => {
     e.preventDefault();
     try {
       await axios.post('https://infizestsys.onrender.com/api/auth/admin-login', adminForm, { withCredentials: true });
-      alert('✅ Admin verified');
+      alert('Admin verified');
       setShowAdminModal(false);
       setAdminForm({ loginId: '', password: '' });
       navigate('/admin');
@@ -38,12 +35,11 @@ function HomePage() {
       alert(err.response?.data?.message || '❌ Invalid admin credentials');
     }
   };
-
   const handleLoginAndRequest = async (e) => {
     e.preventDefault();
     try {
       if (!selectedTaskId && !isAdminLogin) {
-        alert('❌ No task selected');
+        alert('No task selected');
         return;
       }
 
@@ -57,18 +53,18 @@ function HomePage() {
         if (currentUser.isAdmin) {
           navigate('/admin');
         } else {
-          alert('❌ You are not authorized as admin');
+          alert('You are not authorized as admin');
         }
       } else {
         const res = await axios.post('https://infizestsys.onrender.com/api/tasks/request', { taskId: selectedTaskId }, { withCredentials: true });
-        alert(res.data.message || '✅ Task requested successfully!');
+        alert(res.data.message || 'Task requested successfully!');
       }
 
       setShowModal(false);
       setLoginForm({ loginId: '', password: '' });
 
     } catch (err) {
-      alert(err.response?.data?.message || '❌ Login or Task Request failed');
+      alert(err.response?.data?.message || 'Login or Task Request failed');
     }
   };
 
@@ -154,14 +150,13 @@ function HomePage() {
           ))
         )}
       </div>
-
       {/* Admin Login Modal */}
       {showAdminModal && (
         <div className="modal-overlay">
           <div className="login-modal">
             <form onSubmit={handleAdminLogin}>
               <div className="modal-header">
-                <h3>🛡️ Admin Verification</h3>
+                <h3>Admin Verification</h3>
                 <span className="close-btn" onClick={() => setShowAdminModal(false)}>&times;</span>
               </div>
               <div className="modal-content">
@@ -227,3 +222,4 @@ function HomePage() {
 }
 
 export default HomePage;
+ 
